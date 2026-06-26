@@ -1,0 +1,9 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Configuração local do editor/preview (não precisa no repositório)
+.claude/
+
+# Dependências (não há build, mas por garantia)
+node_modules/

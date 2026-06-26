@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crachás de Evento — Impressão Zebra ZD220</title>
+
+<!-- SheetJS (leitura de .xlsx / .csv) via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- Zebra BrowserPrint SDK (arquivos locais — ver libs/README.md).
+     Se não existirem, o app continua funcionando em "Modo simulação". -->
+<script src="libs/BrowserPrint-3.1.250.min.js" onerror="window.__bpMissing=true"></script>
+<script src="libs/BrowserPrint-Zebra-1.1.250.min.js" onerror="window.__bpMissing=true"></script>
+
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#1f2733; --muted:#6b7682;
+    --line:#e3e8ee; --brand:#2f6fed; --brand-d:#1d57c9;
+    --ok:#1f9d55; --ok-bg:#e7f6ee; --err:#d63b3b; --err-bg:#fbe9e9;
+    --warn:#b9770a; --warn-bg:#fdf3e2; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.1);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.45;
+  }
+  header.topbar{
+    background:var(--panel); border-bottom:1px solid var(--line);
+    padding:14px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    position:sticky; top:0; z-index:20; box-shadow:var(--shadow);
+  }
+  .logo{font-weight:700; font-size:18px; display:flex; align-items:center; gap:9px}
+  .logo .dot{width:14px;height:14px;border-radius:3px;background:var(--brand)}
+  .status{
+    margin-left:auto; display:flex; align-items:center; gap:8px; font-weight:600;
+    padding:6px 12px; border-radius:999px; font-size:13px;
+  }
+  .status .led{width:10px;height:10px;border-radius:50%}
+  .status.on{background:var(--ok-bg);color:var(--ok)} .status.on .led{background:var(--ok)}
+  .status.off{background:var(--err-bg);color:var(--err)} .status.off .led{background:var(--err)}
+  .status.sim{background:var(--warn-bg);color:var(--warn)} .status.sim .led{background:var(--warn)}
+
+  .wrap{max-width:1180px; margin:20px auto; padding:0 20px; display:grid;
+        grid-template-columns:1fr 420px; gap:20px; align-items:start}
+  @media (max-width:980px){ .wrap{grid-template-columns:1fr} }
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+        padding:18px; margin-bottom:18px; box-shadow:var(--shadow)}
+  .card h2{margin:0 0 4px; font-size:15px}
+  .card .hint{color:var(--muted); font-size:12.5px; margin:0 0 14px}
+
+  label{display:block; font-weight:600; font-size:12.5px; margin:0 0 5px; color:#374150}
+  input[type=text], input[type=number], select, textarea{
+    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px;
+    font-size:14px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid #cfe0ff; border-color:var(--brand)}
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .row > div{flex:1; min-width:120px}
+  .field{margin-bottom:12px}
+  .chkline{display:flex; align-items:center; gap:8px; margin:4px 0}
+  .chkline input{width:16px;height:16px}
+  .chkline label{margin:0; font-weight:500}
+
+  button{
+    font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    padding:9px 14px; border-radius:8px; transition:.12s;
+  }
+  button:hover{background:#f7f9fc}
+  button.primary{background:var(--brand); border-color:var(--brand); color:#fff}
+  button.primary:hover{background:var(--brand-d)}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  .btnbar{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+
+  .tabs{display:flex; gap:6px; margin-bottom:14px; border-bottom:1px solid var(--line)}
+  .tabs button{border:none; background:none; padding:9px 14px; border-bottom:2px solid transparent;
+               border-radius:0; color:var(--muted); margin-bottom:-1px}
+  .tabs button.active{color:var(--brand); border-bottom-color:var(--brand)}
+
+  .banner{padding:11px 14px; border-radius:8px; font-size:13px; margin-bottom:14px; display:none}
+  .banner.show{display:block}
+  .banner.ok{background:var(--ok-bg);color:#15633a}
+  .banner.err{background:var(--err-bg);color:#9b2222}
+  .banner.warn{background:var(--warn-bg);color:#8a5a06}
+  .banner.info{background:#eef4ff;color:#1d57c9}
+
+  /* Preview */
+  .preview-wrap{position:sticky; top:84px}
+  #previewBox{display:flex; justify-content:center; padding:18px; background:#eef1f5;
+              border:1px solid var(--line); border-radius:10px; min-height:140px}
+  #preview{background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.15); border-radius:2px; max-width:100%}
+  .dims{text-align:center; color:var(--muted); font-size:12px; margin-top:8px}
+  textarea#zpl{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+               font-size:12px; height:170px; white-space:pre; resize:vertical; color:#243; background:#fbfcfe}
+
+  table.grid{width:100%; border-collapse:collapse; font-size:13px; margin-top:8px}
+  table.grid th, table.grid td{border:1px solid var(--line); padding:6px 8px; text-align:left}
+  table.grid th{background:#f4f7fb; position:sticky; top:0}
+  table.grid tr.sel{background:#eef4ff}
+  table.grid tr:hover{background:#f6f9ff; cursor:pointer}
+  .tablescroll{max-height:340px; overflow:auto; border:1px solid var(--line); border-radius:8px}
+  .maps{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:520px){ .maps{grid-template-columns:1fr} }
+
+  .pill{display:inline-block; background:#eef4ff; color:#1d57c9; border-radius:999px;
+        padding:2px 9px; font-size:11.5px; font-weight:600}
+  details summary{cursor:pointer; font-weight:600; font-size:13px; color:var(--brand)}
+  code{background:#eef1f5; padding:1px 5px; border-radius:4px; font-size:12px}
+  a{color:var(--brand)}
+  .small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><span class="dot"></span> Crachás de Evento <span class="small" style="font-weight:500">· Zebra ZD220 (ZPL)</span></div>
+  <div id="status" class="status off"><span class="led"></span><span id="statusText">Conectando…</span></div>
+</header>
+
+<div id="banner" class="banner"></div>
+
+<div class="wrap">
+  <!-- ================= COLUNA ESQUERDA: CONTROLES ================= -->
+  <div>
+    <!-- IMPRESSORA -->
+    <div class="card">
+      <h2>1 · Impressora</h2>
+      <p class="hint">O app conversa com a impressora pelo <b>Zebra Browser Print</b> (programa local). Se não estiver instalado, use o Modo simulação.</p>
+      <div class="field">
+        <label for="printerSelect">Impressora detectada</label>
+        <select id="printerSelect"><option>Procurando…</option></select>
+      </div>
+      <div class="btnbar">
+        <button id="btnReconnect">↻ Reconectar</button>
+        <button id="btnTest">🖨️ Testar impressora</button>
+      </div>
+      <div class="chkline" style="margin-top:12px">
+        <input type="checkbox" id="simulate" />
+        <label for="simulate"><b>Modo simulação</b> — não imprime; só mostra o ZPL gerado</label>
+      </div>
+      <div class="chkline">
+        <input type="checkbox" id="confirmBig" checked />
+        <label for="confirmBig">Confirmar antes de lotes grandes (acima de 30) — desmarque para imprimir direto</label>
+      </div>
+      <div id="installHelp" class="banner warn" style="margin-top:12px">
+        <b>Browser Print não encontrado.</b> Instale o app da Zebra para imprimir de verdade:
+        <a href="https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html" target="_blank" rel="noopener">baixar Zebra Browser Print</a>.
+        Depois adicione a ZD220 e clique em <b>Reconectar</b>. (Veja o README para o passo a passo.)
+      </div>
+    </div>
+
+    <!-- CONFIG ETIQUETA -->
+    <div class="card">
+      <h2>2 · Tamanho do crachá</h2>
+      <p class="hint">Medidas em milímetros. A ZD220 tem 203 dpi → 8 pontos por mm.</p>
+      <div class="row">
+        <div class="field"><label for="widthMm">Largura (mm)</label><input type="number" id="widthMm" min="10" max="200" step="1" value="90" /></div>
+        <div class="field"><label for="heightMm">Altura (mm)</label><input type="number" id="heightMm" min="10" max="200" step="1" value="60" /></div>
+        <div class="field"><label for="copies">Cópias por crachá</label><input type="number" id="copies" min="1" max="999" step="1" value="1" /></div>
+      </div>
+      <div class="chkline"><input type="checkbox" id="dark" /><label for="dark"><b>Fundo preto</b> (texto branco) — opcional, só no crachá de texto</label></div>
+      <div class="chkline"><input type="checkbox" id="border" /><label for="border">Imprimir borda em volta do crachá</label></div>
+      <div class="small" id="dotsInfo"></div>
+    </div>
+
+    <!-- MODELO -->
+    <div class="card">
+      <h2>3 · Modelo do crachá</h2>
+      <div class="field">
+        <label for="template">Layout</label>
+        <select id="template">
+          <option value="texto">Crachá de texto — Nome, Empresa, Cargo (fundo preto)</option>
+          <option value="qr">Crachá com QR Code — Nome + QR (URL/contato)</option>
+          <option value="codigobarras">Crachá com código de barras — Nome + matrícula</option>
+        </select>
+      </div>
+      <div id="symbologyField" class="field" style="display:none">
+        <label for="symbology">Tipo de código de barras</label>
+        <select id="symbology">
+          <option value="CODE128">Code 128 (qualquer texto/número) — padrão</option>
+          <option value="EAN13">EAN-13 (12–13 dígitos)</option>
+        </select>
+      </div>
+
+      <!-- MODOS DE ENTRADA -->
+      <div class="tabs">
+        <button id="tabManual" class="active">✍️ Manual</button>
+        <button id="tabImport">📄 Importar planilha</button>
+      </div>
+
+      <!-- MANUAL -->
+      <div id="modeManual">
+        <div id="manualFields"></div>
+        <div class="btnbar">
+          <button id="btnPrintManual" class="primary">🖨️ Imprimir crachá</button>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div id="modeImport" style="display:none">
+        <div class="field">
+          <label for="gsheetUrl">📊 Link do Google Sheets</label>
+          <input type="text" id="gsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit" />
+          <div class="btnbar" style="margin-top:8px"><button id="btnLoadSheet" class="primary">Carregar do Google Sheets</button></div>
+          <p class="small" style="margin-top:6px">A planilha precisa estar como <b>“Qualquer pessoa com o link → Leitor”</b> (ou publicada na web). Colunas sugeridas: <code>Nome</code>, <code>Empresa</code>, <code>Cargo</code>. Veja o README.</p>
+        </div>
+        <div class="field">
+          <label for="fileInput">…ou carregue um arquivo do PC (.xlsx / .csv)</label>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
+        </div>
+        <div id="mappingBox" style="display:none; margin-top:16px">
+          <label>Mapear colunas da planilha → campos do crachá</label>
+          <div id="maps" class="maps"></div>
+          <div class="btnbar" style="margin-top:14px">
+            <button id="btnSelectAll">Selecionar todas</button>
+            <button id="btnSelectNone">Limpar seleção</button>
+            <button id="btnPrintSelected" class="primary">🖨️ Imprimir selecionadas (<span id="selCount">0</span>)</button>
+            <button id="btnCancel" style="display:none">⛔ Cancelar impressão</button>
+          </div>
+          <p class="small" style="margin-top:6px">Dica: clique numa linha para pré-visualizá-la à direita.</p>
+          <div class="tablescroll" style="margin-top:10px"><table class="grid" id="dataTable"></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= COLUNA DIREITA: PREVIEW ================= -->
+  <div>
+    <div class="preview-wrap">
+      <div class="card">
+        <h2>Pré-visualização <span class="pill" id="previewSource">manual</span></h2>
+        <p class="hint">Aproximada — para conferir o layout. Código de barras e QR aparecem estilizados.</p>
+        <div id="previewBox"><canvas id="preview" width="360" height="240"></canvas></div>
+        <div class="dims" id="dims"></div>
+      </div>
+      <div class="card">
+        <details open>
+          <summary>ZPL gerado (somente leitura)</summary>
+          <textarea id="zpl" readonly spellcheck="false" style="margin-top:10px"></textarea>
+          <div class="btnbar"><button id="btnCopyZpl">📋 Copiar ZPL</button></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Crachás de Evento — Zebra ZD220 (203 dpi, ZPL II)
+   HTML + JS puro. Comunicação via Zebra Browser Print.
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const DPMM = 8;                 // 203 dpi ≈ 8 dots/mm
+const STORE_KEY = 'cracha-zd220-config-v2';
+const BIG_BATCH = 30;           // pede confirmação acima disso
+const BATCH_DELAY = 200;        // ms entre etiquetas no lote (protege a memória da impressora)
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const mm2dots = mm => Math.round((Number(mm)||0)*DPMM);
+const sleep = ms => new Promise(r=>setTimeout(r, ms));
+
+/* ---------- Estado ---------- */
+let config = {
+  widthMm:80, heightMm:30, copies:1, border:false, dark:false, confirmBig:true,
+  template:'texto', symbology:'CODE128', simulate:false, printerName:null, sheetUrl:''
+};
+let batchRunning = false, batchCancel = false;
+let selectedDevice = null;
+let deviceList = [];
+let importRows = [];      // [{__sel:bool, cells:[...]}]
+let importHeaders = [];   // ['Nome','Cargo',...]
+let mapping = {};         // fieldKey -> column index (or -1)
+let previewRowIndex = -1; // linha da planilha em preview (modo import)
+let mode = 'manual';
+
+/* ---------- Modelos de crachá ---------- */
+const TEMPLATES = {
+  texto: { label:'Texto', fields:[
+    {key:'nome',    label:'Nome', req:true, ph:'Thiago Rocha'},
+    {key:'empresa', label:'Empresa', ph:'Life Box'},
+    {key:'cargo',   label:'Cargo / Função', ph:'Dono'},
+  ]},
+  qr: { label:'QR', fields:[
+    {key:'nome',    label:'Nome', req:true, ph:'Maria Oliveira'},
+    {key:'qrdata',  label:'Dados do QR (URL, e-mail, vCard…)', req:true, ph:'https://evento.com/p/123'},
+    {key:'legenda', label:'Legenda abaixo do QR (opcional)', ph:'Acme Ltda'},
+  ]},
+  codigobarras: { label:'Código de barras', fields:[
+    {key:'nome',    label:'Nome', req:true, ph:'Maria Oliveira'},
+    {key:'codigo',  label:'Código / Matrícula', req:true, ph:'1024'},
+    {key:'legenda', label:'Legenda (opcional)', ph:'Participante'},
+  ]},
+};
+
+/* ============================================================
+   PERSISTÊNCIA (localStorage — liberado em projeto local/Pages)
+   ============================================================ */
+function saveConfig(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(config)); }catch(e){} }
+function loadConfig(){
+  try{ const s = localStorage.getItem(STORE_KEY); if(s) config = Object.assign(config, JSON.parse(s)); }catch(e){}
+}
+
+/* ============================================================
+   MENSAGENS
+   ============================================================ */
+let bannerTimer = null;
+function banner(text, type='info', sticky=false){
+  const b = $('banner');
+  b.className = 'banner show ' + type;
+  b.innerHTML = text;
+  clearTimeout(bannerTimer);
+  if(!sticky) bannerTimer = setTimeout(()=>{ b.className = 'banner'; }, 5000);
+}
+
+/* ============================================================
+   BROWSER PRINT — detecção e conexão
+   ============================================================ */
+function setStatus(state, text){
+  const s = $('status');
+  s.className = 'status ' + state;
+  $('statusText').textContent = text;
+}
+
+function connectPrinter(){
+  if(config.simulate){
+    setStatus('sim','Modo simulação (não imprime)');
+    return;
+  }
+  if(typeof BrowserPrint === 'undefined' || window.__bpMissing){
+    setStatus('off','Browser Print não encontrado');
+    $('installHelp').classList.add('show');
+    fillPrinterSelect([]);
+    return;
+  }
+  $('installHelp').classList.remove('show');
+  setStatus('off','Procurando impressoras…');
+
+  // Lista todas as impressoras locais
+  BrowserPrint.getLocalDevices(function(devices){
+    deviceList = (devices||[]).filter(d => d.deviceType === 'printer' || !d.deviceType);
+    fillPrinterSelect(deviceList);
+    if(deviceList.length === 0){
+      setStatus('off','Nenhuma impressora Zebra encontrada');
+      banner('Browser Print está rodando, mas nenhuma impressora foi encontrada. Ligue a ZD220, conecte o USB e clique em <b>Reconectar</b>.', 'warn', true);
+      return;
+    }
+    // Tenta restaurar a última usada; senão usa a padrão
+    BrowserPrint.getDefaultDevice('printer', function(def){
+      const wanted = config.printerName && deviceList.find(d=>d.name===config.printerName);
+      const dev = wanted || def || deviceList[0];
+      selectDevice(dev ? dev.name : deviceList[0].name);
+    }, function(){
+      selectDevice(deviceList[0].name);
+    });
+  }, function(err){
+    setStatus('off','Browser Print não encontrado');
+    $('installHelp').classList.add('show');
+    fillPrinterSelect([]);
+  }, 'printer');
+}
+
+function fillPrinterSelect(list){
+  const sel = $('printerSelect');
+  sel.innerHTML = '';
+  if(!list || list.length === 0){
+    sel.innerHTML = '<option value="">— nenhuma —</option>';
+    return;
+  }
+  list.forEach(d=>{
+    const o = document.createElement('option');
+    o.value = d.name; o.textContent = d.name + (d.connection ? ' ('+d.connection+')' : '');
+    sel.appendChild(o);
+  });
+}
+
+function selectDevice(name){
+  selectedDevice = deviceList.find(d => d.name === name) || null;
+  $('printerSelect').value = name;
+  config.printerName = name; saveConfig();
+  if(selectedDevice) setStatus('on','Conectado a ' + selectedDevice.name);
+}
+
+/* Envia ZPL para a impressora (ou simula). Retorna Promise. */
+function sendZpl(zpl){
+  return new Promise((resolve, reject)=>{
+    if(config.simulate || !selectedDevice){
+      console.log('--- ZPL (simulado) ---\n' + zpl);
+      resolve({simulated:true});
+      return;
+    }
+    selectedDevice.send(zpl, ()=>resolve({simulated:false}), (e)=>reject(e||'Falha ao enviar para a impressora'));
+  });
+}
+
+/* ============================================================
+   GERAÇÃO DE LAYOUT  (fonte única de verdade p/ ZPL e preview)
+   buildLayout devolve uma lista de elementos em "dots".
+   ============================================================ */
+function san(v){ return (v==null?'':String(v)); }
+
+/* ---------- Nome: primeiro nome + primeiro sobrenome, sem duplicar ---------- */
+const NAME_CONNECTORS = new Set(['da','de','do','dos','das','e','di','del','della','van','von','la','le','el','y','du','den','der']);
+
+function nameParts(full){
+  const toks = san(full).trim().split(/\s+/).filter(Boolean);
+  if(!toks.length) return {first:'', surnames:[]};
+  const surnames = toks.slice(1).filter(t => !NAME_CONNECTORS.has(t.toLowerCase()));
+  return {first:toks[0], surnames};
+}
+
+// "Maria Alves da Silva" -> "Maria Alves"
+function shortName(full){
+  const {first, surnames} = nameParts(full);
+  if(!first) return '';
+  return surnames.length ? `${first} ${surnames[0]}` : first;
+}
+
+// candidatos em ordem de preferência, para desempatar nomes iguais
+function shortNameCandidates(full){
+  const {first, surnames} = nameParts(full);
+  if(!first) return [''];
+  if(!surnames.length) return [first];
+  const last = surnames[surnames.length-1];
+  const c = [
+    `${first} ${surnames[0]}`,            // primeiro + 1º sobrenome
+    `${first} ${last}`,                   // primeiro + último sobrenome
+    `${first} ${surnames[0]} ${last}`,    // primeiro + 1º + último
+    [first, ...surnames].join(' '),       // nome completo (sem conectores)
+  ];
+  return [...new Set(c)];
+}
+
+// Resolve uma lista de nomes completos em nomes curtos e ÚNICOS.
+function resolveDisplayNames(fulls){
+  const taken = new Set();
+  return fulls.map(full=>{
+    const cands = shortNameCandidates(full);
+    let chosen = cands.find(c => c && !taken.has(c.toLowerCase()));
+    if(!chosen){
+      const base = cands[cands.length-1] || san(full).trim() || 'Sem nome';
+      let n = 2; chosen = base;
+      while(taken.has(chosen.toLowerCase())) chosen = `${base} ${n++}`;
+    }
+    taken.add(chosen.toLowerCase());
+    return chosen;
+  });
+}
+
+/* ---------- Medição de fonte (para deixar o nome o maior possível) ---------- */
+let _measCtx;
+function fontWidthRatio(text, bold){
+  if(!_measCtx) _measCtx = document.createElement('canvas').getContext('2d');
+  _measCtx.font = `${bold?'bold ':''}100px Arial, sans-serif`;
+  return _measCtx.measureText(text || ' ').width / 100;   // largura por 1px de altura
+}
+function fitFontToWidth(text, blockW, bold){
+  const r = fontWidthRatio(text, bold);
+  return r > 0 ? Math.floor(blockW / r) : 999;
+}
+
+function buildLayout(tpl, d, W, H){
+  const els = [];
+  const margin = Math.round(W*0.05);
+  const blockW = W - margin*2;
+  const dark = config.dark && tpl === 'texto';   // tema escuro só no crachá de texto
+
+  if(dark) els.push({type:'bg', x:0, y:0, w:W, h:H});
+  if(config.border && !dark){
+    els.push({type:'box', x:6, y:6, w:W-12, h:H-12, thickness:3});
+  }
+
+  if(tpl === 'texto'){
+    // NOME grande e em negrito (o maior possível pela largura), com EMPRESA e CARGO menores.
+    const nome = san(d.nome).trim() || ' ';
+    const subs = [san(d.empresa).trim(), san(d.cargo).trim()].filter(Boolean);
+    const nLines = 1 + subs.length;
+    const marginY = Math.round(H*0.06);
+    const avail = H - 2*marginY;
+    const gap = Math.round(H*0.045);
+
+    const widthFit = fitFontToWidth(nome, blockW*0.92, true);
+    const heightCap = Math.round(avail * (subs.length ? 0.62 : 1.0));
+    let nameFont = clamp(Math.min(widthFit, heightCap), 24, 220);
+    let subFont = subs.length ? clamp(Math.round(Math.min(nameFont*0.45, avail*0.22)), 16, 64) : 0;
+
+    let total = nameFont + subs.length*subFont + gap*(nLines-1);
+    if(total > avail){                       // reduz proporcional se não couber
+      const k = avail/total;
+      nameFont = Math.floor(nameFont*k);
+      subFont = Math.floor(subFont*k);
+      total = nameFont + subs.length*subFont + gap*(nLines-1);
+    }
+
+    let y = Math.max(marginY, Math.round((H - total)/2));
+    els.push({type:'text', x:margin, y, font:nameFont, blockW, align:'C', text:nome, upper:true, bold:true, reverse:dark, maxlines:1});
+    y += nameFont + gap;
+    for(const s of subs){
+      els.push({type:'text', x:margin, y, font:subFont, blockW, align:'C', text:s, upper:true, reverse:dark, maxlines:1});
+      y += subFont + gap;
+    }
+  }
+
+  else if(tpl === 'qr'){
+    const nomeFont = clamp(Math.round(H*0.13), 26, 72);
+    els.push({type:'text', x:margin, y:Math.round(H*0.09), font:nomeFont, blockW, align:'C', text:san(d.nome)});
+    const mag = clamp(Math.round(Math.min(W,H)/55), 3, 10);
+    const est = mag*29; // estimativa do tamanho do QR em dots
+    const qx = clamp(Math.round((W - est)/2), margin, W);
+    const qy = Math.round(H*0.33);
+    els.push({type:'qr', x:qx, y:qy, mag, est, data:san(d.qrdata)});
+    const legenda = san(d.legenda).trim();
+    if(legenda){
+      els.push({type:'text', x:margin, y:H - Math.round(H*0.16), font:clamp(Math.round(H*0.08),20,42),
+                blockW, align:'C', text:legenda});
+    }
+  }
+
+  else if(tpl === 'codigobarras'){
+    const nomeFont = clamp(Math.round(H*0.14), 26, 72);
+    els.push({type:'text', x:margin, y:Math.round(H*0.11), font:nomeFont, blockW, align:'C', text:san(d.nome)});
+    const bx = Math.round(W*0.12);
+    const by = Math.round(H*0.44);
+    const bh = clamp(Math.round(H*0.30), 50, 220);
+    els.push({type:'barcode', x:bx, y:by, height:bh, blockW:W-2*bx, data:san(d.codigo), symbology:config.symbology});
+    const legenda = san(d.legenda).trim();
+    if(legenda){
+      els.push({type:'text', x:margin, y:H - Math.round(H*0.13), font:clamp(Math.round(H*0.075),18,38),
+                blockW, align:'C', text:legenda});
+    }
+  }
+
+  return els;
+}
+
+/* ---------- ZPL ---------- */
+function zplEscape(s){ return String(s).replace(/[\^~\\]/g, ' '); }
+function onlyDigits(s){ return String(s).replace(/\D/g,''); }
+
+function layoutToZPL(layout, W, H, copies){
+  let z = '^XA\n^CI28\n^PW' + W + '\n^LL' + H + '\n^LH0,0\n';
+  for(const e of layout){
+    if(e.type === 'bg'){
+      z += `^FO${e.x},${e.y}^GB${e.w},${e.h},${Math.max(e.w,e.h)},B^FS\n`;
+    } else if(e.type === 'box'){
+      z += `^FO${e.x},${e.y}^GB${e.w},${e.h},${e.thickness}^FS\n`;
+    } else if(e.type === 'text'){
+      const t = zplEscape(e.upper ? e.text.toUpperCase() : e.text);
+      const fr = e.reverse ? '^FR' : '';
+      const ml = e.maxlines || 2;
+      const field = (dx,dy)=> `^FO${e.x+dx},${e.y+dy}^A0N,${e.font},${e.font}^FB${e.blockW},${ml},0,${e.align||'L'},0${fr}^FD${t}^FS\n`;
+      if(e.bold && !e.reverse){
+        // negrito "falso": imprime em 4 posições deslocadas para engrossar o traço
+        const o = Math.max(1, Math.round(e.font/55));
+        z += field(0,0) + field(o,0) + field(0,o) + field(o,o);
+      } else {
+        z += field(0,0);   // no fundo preto (reverse) usa 1 passada para não anular o ^FR
+      }
+    } else if(e.type === 'qr'){
+      z += `^FO${e.x},${e.y}^BQN,2,${e.mag}^FDLA,${zplEscape(e.data)}^FS\n`;
+    } else if(e.type === 'barcode'){
+      if(e.symbology === 'EAN13'){
+        z += `^FO${e.x},${e.y}^BY2^BEN,${e.height},Y,N^FD${onlyDigits(e.data)}^FS\n`;
+      } else {
+        z += `^FO${e.x},${e.y}^BY2^BCN,${e.height},Y,N,N^FD${zplEscape(e.data)}^FS\n`;
+      }
+    }
+  }
+  z += '^PQ' + Math.max(1, Number(copies)||1) + '\n^XZ';
+  return z;
+}
+
+/* Gera o ZPL completo a partir de um objeto de dados */
+function zplFor(data){
+  const W = mm2dots(config.widthMm), H = mm2dots(config.heightMm);
+  const layout = buildLayout(config.template, data, W, H);
+  return layoutToZPL(layout, W, H, config.copies);
+}
+
+/* ============================================================
+   PREVIEW (canvas) — usa o mesmo layout do ZPL
+   ============================================================ */
+function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+function nextRand(state){ return (Math.imul(state,1103515245)+12345)>>>0; }
+
+function drawFakeQR(ctx,x,y,size,data){
+  const n=25, cell=size/n;
+  ctx.fillStyle='#111';
+  let h = hashStr(data||'x');
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    h = nextRand(h);
+    const inFinder = (r<7&&c<7)||(r<7&&c>=n-7)||(r>=n-7&&c<7);
+    let on;
+    if(inFinder){
+      const rr = r<7?r:r-(n-7), cc = c<7?c:c-(n-7);
+      on = (rr===0||rr===6||cc===0||cc===6||(rr>=2&&rr<=4&&cc>=2&&cc<=4));
+    } else { on = ((h>>>17)&1)===1; }
+    if(on) ctx.fillRect(x+c*cell, y+r*cell, Math.ceil(cell), Math.ceil(cell));
+  }
+  ctx.strokeStyle='#d0d4da'; ctx.strokeRect(x,y,size,size);
+}
+
+function drawFakeBarcode(ctx,x,y,w,h,data){
+  const textH = Math.max(11, h*0.24), barH = h - textH;
+  ctx.fillStyle='#111';
+  let s = hashStr((data||'')+'|'+config.symbology);
+  let cx = x;
+  while(cx < x+w-2){
+    s = nextRand(s); const bw = 1 + (s%4);
+    s = nextRand(s); const gap = 1 + (s%3);
+    ctx.fillRect(cx, y, bw, barH); cx += bw + gap;
+  }
+  ctx.font = `${Math.max(9, textH*0.8)}px ui-monospace, monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle='#111';
+  const shown = config.symbology==='EAN13' ? onlyDigits(data) : String(data||'');
+  ctx.fillText(shown, x+w/2, y+barH+2, w);
+}
+
+function renderPreview(layout, W, H){
+  const canvas = $('preview');
+  const maxW = 372, maxH = 300;
+  const scale = Math.min(maxW/W, maxH/H);
+  const cw = Math.max(1,Math.round(W*scale)), ch = Math.max(1,Math.round(H*scale));
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cw,ch);
+
+  for(const e of layout){
+    if(e.type === 'bg'){
+      ctx.fillStyle='#111'; ctx.fillRect(e.x*scale, e.y*scale, e.w*scale, e.h*scale);
+    } else if(e.type === 'box'){
+      ctx.strokeStyle='#111'; ctx.lineWidth=Math.max(1, e.thickness*scale);
+      ctx.strokeRect(e.x*scale, e.y*scale, e.w*scale, e.h*scale);
+    } else if(e.type === 'text'){
+      ctx.fillStyle = e.reverse ? '#fff' : '#111';
+      ctx.font = `${e.bold?'bold ':''}${Math.max(6, e.font*scale)}px Arial, sans-serif`;
+      ctx.textBaseline='top';
+      const txt = e.upper ? String(e.text).toUpperCase() : String(e.text);
+      const bw = e.blockW*scale;
+      ctx.textAlign = e.align==='C'?'center':e.align==='R'?'right':'left';
+      const dx = e.align==='C' ? e.x*scale+bw/2 : e.align==='R' ? e.x*scale+bw : e.x*scale;
+      ctx.fillText(txt, dx, e.y*scale, bw);
+    } else if(e.type === 'qr'){
+      drawFakeQR(ctx, e.x*scale, e.y*scale, e.est*scale, e.data);
+    } else if(e.type === 'barcode'){
+      drawFakeBarcode(ctx, e.x*scale, e.y*scale, e.blockW*scale, e.height*scale, e.data);
+    }
+  }
+  $('dims').textContent = `${config.widthMm} × ${config.heightMm} mm  ·  ${W} × ${H} dots  ·  ${config.copies} cópia(s)`;
+}
+
+/* ============================================================
+   COLETA DE DADOS + ATUALIZAÇÃO DA UI
+   ============================================================ */
+function currentManualData(){
+  const d = {};
+  TEMPLATES[config.template].fields.forEach(f=>{
+    const inp = $('mf_'+f.key);
+    d[f.key] = inp ? inp.value : '';
+  });
+  if(d.nome != null) d.nome = shortName(d.nome);   // primeiro nome + primeiro sobrenome
+  return d;
+}
+
+function currentImportData(rowIdx){
+  const d = {};
+  const row = importRows[rowIdx];
+  if(!row) return d;
+  TEMPLATES[config.template].fields.forEach(f=>{
+    const col = mapping[f.key];
+    d[f.key] = (col != null && col >= 0) ? san(row.cells[col]) : '';
+  });
+  // nome curto e único, já resolvido para o lote inteiro
+  if(row.displayNome != null) d.nome = row.displayNome;
+  else if(d.nome != null) d.nome = shortName(d.nome);
+  return d;
+}
+
+function refreshPreview(){
+  let data;
+  if(mode === 'import' && importRows.length){
+    const idx = previewRowIndex >= 0 ? previewRowIndex : firstSelectedRow();
+    data = currentImportData(idx >= 0 ? idx : 0);
+    $('previewSource').textContent = idx >= 0 ? ('linha '+(idx+1)) : 'planilha';
+  } else {
+    data = currentManualData();
+    $('previewSource').textContent = 'manual';
+  }
+  const W = mm2dots(config.widthMm), H = mm2dots(config.heightMm);
+  const layout = buildLayout(config.template, data, W, H);
+  renderPreview(layout, W, H);
+  $('zpl').value = layoutToZPL(layout, W, H, config.copies);
+  $('dotsInfo').textContent = `${W} × ${H} dots (8 dots/mm)`;
+}
+
+/* Renderiza os campos do modo manual conforme o modelo */
+function renderManualFields(){
+  const box = $('manualFields'); box.innerHTML = '';
+  TEMPLATES[config.template].fields.forEach(f=>{
+    const wrap = document.createElement('div'); wrap.className = 'field';
+    const lab = document.createElement('label'); lab.textContent = f.label + (f.req ? ' *' : '');
+    lab.htmlFor = 'mf_'+f.key;
+    const inp = document.createElement('input');
+    inp.type='text'; inp.id='mf_'+f.key; inp.placeholder = f.ph || '';
+    inp.addEventListener('input', refreshPreview);
+    wrap.appendChild(lab); wrap.appendChild(inp); box.appendChild(wrap);
+  });
+}
+
+/* ============================================================
+   VALIDAÇÃO + IMPRESSÃO
+   ============================================================ */
+function validate(data){
+  const miss = TEMPLATES[config.template].fields.filter(f=>f.req && !san(data[f.key]).trim());
+  if(miss.length){ return 'Preencha: ' + miss.map(f=>f.label).join(', '); }
+  if(config.template==='codigobarras' && config.symbology==='EAN13'){
+    const dig = onlyDigits(data.codigo);
+    if(dig.length < 12 || dig.length > 13) return 'EAN-13 precisa de 12 ou 13 dígitos (você informou '+dig.length+').';
+  }
+  return null;
+}
+
+async function printManual(){
+  const data = currentManualData();
+  const err = validate(data);
+  if(err){ banner('⚠️ ' + err, 'warn'); return; }
+
+  const total = Number(config.copies)||1;
+  if(config.confirmBig && total > BIG_BATCH && !confirm(`Você vai imprimir ${total} crachás. Continuar?`)) return;
+
+  const zpl = zplFor(data);
+  try{
+    const r = await sendZpl(zpl);
+    banner(r.simulated
+      ? '✅ Simulação OK — ZPL gerado (veja o painel à direita e o console).'
+      : `✅ Enviado para <b>${selectedDevice.name}</b> (${total} cópia(s)).`, 'ok');
+  }catch(e){
+    banner('❌ Erro ao imprimir: ' + e + '. A impressora está ligada e o Browser Print rodando?', 'err', true);
+  }
+}
+
+async function printSelected(){
+  if(batchRunning) return;
+  const sel = importRows.map((r,i)=>({r,i})).filter(x=>x.r.__sel);
+  if(sel.length === 0){ banner('Selecione pelo menos uma linha.', 'warn'); return; }
+
+  // valida todas antes
+  for(const {i} of sel){
+    const err = validate(currentImportData(i));
+    if(err){ banner(`⚠️ Linha ${i+1}: ${err}`, 'warn', true); return; }
+  }
+
+  const totalLabels = sel.length * (Number(config.copies)||1);
+  if(config.confirmBig && totalLabels > BIG_BATCH &&
+     !confirm(`Você vai imprimir ${totalLabels} crachás (${sel.length} pessoas × ${config.copies} cópia(s)). Continuar?`)) return;
+
+  batchRunning = true; batchCancel = false;
+  $('btnPrintSelected').style.display = 'none';
+  $('btnCancel').textContent = '⛔ Cancelar impressão';
+  $('btnCancel').style.display = '';
+
+  let done = 0, simulated = false, simLog = [];
+  banner(`Imprimindo… 0/${sel.length}`, 'info', true);
+  for(const {i} of sel){
+    if(batchCancel){ banner(`⛔ Impressão cancelada em ${done}/${sel.length} crachás.`, 'warn', true); break; }
+    const zpl = zplFor(currentImportData(i));
+    try{
+      const res = await sendZpl(zpl);
+      simulated = simulated || res.simulated;
+      if(res.simulated) simLog.push('### Linha '+(i+1)+'\n'+zpl);
+      done++;
+      banner(`Imprimindo… ${done}/${sel.length}` + (config.simulate?'' : ' — clique em Cancelar para parar'), 'info', true);
+      if(!res.simulated && done < sel.length) await sleep(BATCH_DELAY);   // ritmo p/ não estourar a memória
+    }catch(e){
+      banner(`❌ Parou na linha ${i+1}: ${e}. ${done} já foram enviados.`, 'err', true);
+      break;
+    }
+  }
+
+  batchRunning = false;
+  $('btnCancel').style.display = 'none';
+  $('btnPrintSelected').style.display = '';
+
+  if(batchCancel) return;   // mensagem de cancelamento já foi mostrada
+  if(simulated){
+    console.log('===== LOTE SIMULADO ('+done+' crachás) =====\n' + simLog.join('\n\n'));
+    banner(`✅ Simulação OK — ${done} crachás gerados (ZPL no console do navegador).`, 'ok', true);
+  } else {
+    banner(`✅ ${done} crachás enviados para <b>${selectedDevice.name}</b>.`, 'ok', true);
+  }
+}
+
+function testPrinter(){
+  const W = mm2dots(config.widthMm), H = mm2dots(config.heightMm);
+  const zpl =
+`^XA
+^CI28
+^PW${W}
+^LL${H}
+^LH0,0
+^FO8,8^GB${W-16},${H-16},3^FS
+^FO0,${Math.round(H*0.18)}^A0N,${clamp(Math.round(H*0.16),26,70)},${clamp(Math.round(H*0.16),26,70)}^FB${W},1,0,C,0^FDTESTE ZD220^FS
+^FO0,${Math.round(H*0.45)}^A0N,${clamp(Math.round(H*0.09),20,40)},${clamp(Math.round(H*0.09),20,40)}^FB${W},2,0,C,0^FDBrowser Print OK - acentuacao: cao, coracao^FS
+^FO0,${Math.round(H*0.72)}^A0N,26,26^FB${W},1,0,C,0^FD${config.widthMm}x${config.heightMm} mm^FS
+^PQ1
+^XZ`;
+  sendZpl(zpl).then(r=>{
+    banner(r.simulated ? '✅ Etiqueta de teste (simulada) — veja o console.' : '✅ Etiqueta de teste enviada.', 'ok');
+  }).catch(e=> banner('❌ Falha no teste: ' + e, 'err', true));
+}
+
+/* ============================================================
+   IMPORTAÇÃO DE PLANILHA (SheetJS)
+   ============================================================ */
+/* Recebe as linhas já parseadas (array de arrays) e monta a tabela/mapeamento. */
+function ingestRows(rows, sourceName){
+  if(!rows || rows.length < 2){ banner('A planilha precisa de um cabeçalho e ao menos 1 linha de dados.', 'warn', true); return; }
+  importHeaders = rows[0].map(h=>san(h).trim() || '(coluna sem nome)');
+  importRows = rows.slice(1).map(cells=>({ __sel:true, cells: importHeaders.map((_,i)=>san(cells[i])) }));
+  autoMap();
+  computeDisplayNames();
+  buildMappingUI();
+  buildTable();
+  $('mappingBox').style.display = 'block';
+  previewRowIndex = 0;
+  updateSelCount(); refreshPreview();
+  banner(`✅ ${importRows.length} linha(s) carregada(s) de ${sourceName}.`, 'ok');
+}
+
+/* Calcula o nome curto e único de cada linha (com base na coluna mapeada para "nome"). */
+function computeDisplayNames(){
+  const col = mapping['nome'];
+  const fulls = importRows.map(r => (col != null && col >= 0) ? san(r.cells[col]) : '');
+  const resolved = resolveDisplayNames(fulls);
+  importRows.forEach((r,i)=> r.displayNome = resolved[i]);
+}
+
+function rowsFromCsvText(text){
+  const wb = XLSX.read(text, {type:'string'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
+}
+
+function handleFile(file){
+  // CSV: lê como texto UTF-8 (evita acentos quebrados, ex.: "João" → "JoÃ£o").
+  // XLSX/XLS: lê como binário (o arquivo é um zip).
+  const isCsv = /\.csv$/i.test(file.name) || file.type === 'text/csv';
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      let rows;
+      if(isCsv){
+        rows = rowsFromCsvText(ev.target.result);
+      } else {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
+      }
+      ingestRows(rows, `“${file.name}”`);
+    }catch(e){
+      banner('❌ Não consegui ler o arquivo: ' + e, 'err', true);
+    }
+  };
+  if(isCsv) reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+/* Converte um link normal do Google Sheets na URL que devolve CSV. */
+function googleSheetCsvUrl(raw){
+  raw = String(raw).trim();
+  if(!raw) return null;
+  if(/output=csv/i.test(raw)) return raw;                       // já é export/publish CSV
+  if(/\/pub\b/i.test(raw)) return raw + (raw.includes('?')?'&':'?') + 'output=csv'; // publicado na web
+  const id = (raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) || [])[1];
+  if(!id) return null;
+  const gid = (raw.match(/[#&?]gid=(\d+)/) || [])[1] || '0';
+  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
+}
+
+async function loadGoogleSheet(){
+  const raw = $('gsheetUrl').value.trim();
+  const url = googleSheetCsvUrl(raw);
+  if(!url){ banner('Cole um link válido do Google Sheets.', 'warn'); return; }
+  banner('Carregando planilha do Google…', 'info', true);
+  try{
+    const res = await fetch(url, {redirect:'follow'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if(/^\s*</.test(text) || /<!DOCTYPE|<html/i.test(text)){
+      throw new Error('a planilha não está pública (recebi uma página, não os dados).');
+    }
+    config.sheetUrl = raw; saveConfig();
+    ingestRows(rowsFromCsvText(text), 'Google Sheets');
+  }catch(e){
+    const cors = /Failed to fetch|NetworkError|CORS/i.test(String(e));
+    banner('❌ Não consegui ler o Google Sheets: ' + (cors ? 'o navegador bloqueou o acesso. ' : e.message + ' ')
+      + 'Confirme o compartilhamento como <b>“Qualquer pessoa com o link → Leitor”</b>, ou use <b>Arquivo → Compartilhar → Publicar na web → CSV</b> e cole esse link. Em último caso, baixe como CSV e use “carregar arquivo”.', 'err', true);
+  }
+}
+
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+function autoMap(){
+  mapping = {};
+  const aliases = {
+    nome:['nome','name','participante','pessoa','fullname'],
+    cargo:['cargo','funcao','role','titulo','title','position'],
+    empresa:['empresa','company','organizacao','org','instituicao'],
+    evento:['evento','event'],
+    qrdata:['qr','qrcode','url','link','contato','email','vcard','dados'],
+    codigo:['codigo','code','matricula','id','barcode','crachanum'],
+    legenda:['legenda','caption','obs','subtitulo'],
+  };
+  TEMPLATES[config.template].fields.forEach(f=>{
+    let found = -1;
+    const al = aliases[f.key] || [f.key];
+    importHeaders.forEach((h,i)=>{ if(found<0 && al.includes(norm(h))) found = i; });
+    if(found<0) importHeaders.forEach((h,i)=>{ if(found<0 && al.some(a=>norm(h).includes(a))) found = i; });
+    mapping[f.key] = found;
+  });
+}
+
+function buildMappingUI(){
+  const box = $('maps'); box.innerHTML = '';
+  TEMPLATES[config.template].fields.forEach(f=>{
+    const wrap = document.createElement('div');
+    const lab = document.createElement('label'); lab.textContent = f.label + (f.req?' *':'');
+    const sel = document.createElement('select');
+    sel.innerHTML = '<option value="-1">— (vazio) —</option>' +
+      importHeaders.map((h,i)=>`<option value="${i}">${h}</option>`).join('');
+    sel.value = mapping[f.key];
+    sel.addEventListener('change', ()=>{ mapping[f.key] = parseInt(sel.value,10); computeDisplayNames(); buildTable(); refreshPreview(); });
+    wrap.appendChild(lab); wrap.appendChild(sel); box.appendChild(wrap);
+  });
+}
+
+function buildTable(){
+  const t = $('dataTable');
+  const fields = TEMPLATES[config.template].fields;
+  let html = '<thead><tr><th style="width:34px"><input type="checkbox" id="chkAll"></th><th style="width:34px">#</th>'
+    + fields.map(f=>`<th>${f.key==='nome'?'Nome (no crachá)':f.label}</th>`).join('') + '</tr></thead><tbody>';
+  importRows.forEach((row,i)=>{
+    html += `<tr data-i="${i}" class="${row.__sel?'sel':''}">`
+      + `<td><input type="checkbox" class="rowchk" data-i="${i}" ${row.__sel?'checked':''}></td>`
+      + `<td>${i+1}</td>`
+      + fields.map(f=>{
+          if(f.key==='nome') return `<td><b>${san(row.displayNome)}</b></td>`;
+          const c = mapping[f.key]; return `<td>${(c!=null&&c>=0)? san(row.cells[c]) : '<span class="small">—</span>'}</td>`;
+        }).join('')
+      + '</tr>';
+  });
+  html += '</tbody>';
+  t.innerHTML = html;
+
+  $('chkAll').checked = importRows.every(r=>r.__sel);
+  $('chkAll').addEventListener('change', e=>{ importRows.forEach(r=>r.__sel=e.target.checked); buildTable(); updateSelCount(); refreshPreview(); });
+  t.querySelectorAll('.rowchk').forEach(chk=>{
+    chk.addEventListener('change', e=>{ e.stopPropagation(); const i=+chk.dataset.i; importRows[i].__sel=chk.checked; chk.closest('tr').classList.toggle('sel',chk.checked); $('chkAll').checked = importRows.every(r=>r.__sel); updateSelCount(); });
+  });
+  t.querySelectorAll('tbody tr').forEach(tr=>{
+    tr.addEventListener('click', e=>{ if(e.target.classList.contains('rowchk')) return; previewRowIndex = +tr.dataset.i; refreshPreview(); });
+  });
+}
+
+function firstSelectedRow(){ for(let i=0;i<importRows.length;i++) if(importRows[i].__sel) return i; return -1; }
+function updateSelCount(){ $('selCount').textContent = importRows.filter(r=>r.__sel).length; }
+
+/* ============================================================
+   WIRING / EVENTOS
+   ============================================================ */
+function applyConfigToInputs(){
+  $('widthMm').value = config.widthMm;
+  $('heightMm').value = config.heightMm;
+  $('copies').value = config.copies;
+  $('dark').checked = config.dark;
+  $('border').checked = config.border;
+  $('confirmBig').checked = config.confirmBig;
+  $('template').value = config.template;
+  $('symbology').value = config.symbology;
+  $('simulate').checked = config.simulate;
+  $('gsheetUrl').value = config.sheetUrl || '';
+  $('symbologyField').style.display = (config.template==='codigobarras') ? 'block' : 'none';
+}
+
+function bindEvents(){
+  $('widthMm').addEventListener('input', e=>{ config.widthMm = clamp(+e.target.value||10,10,200); saveConfig(); refreshPreview(); });
+  $('heightMm').addEventListener('input', e=>{ config.heightMm = clamp(+e.target.value||10,10,200); saveConfig(); refreshPreview(); });
+  $('copies').addEventListener('input', e=>{ config.copies = clamp(+e.target.value||1,1,999); saveConfig(); refreshPreview(); });
+  $('dark').addEventListener('change', e=>{ config.dark = e.target.checked; saveConfig(); refreshPreview(); });
+  $('border').addEventListener('change', e=>{ config.border = e.target.checked; saveConfig(); refreshPreview(); });
+
+  $('template').addEventListener('change', e=>{
+    config.template = e.target.value; saveConfig();
+    $('symbologyField').style.display = (config.template==='codigobarras') ? 'block' : 'none';
+    renderManualFields();
+    if(importRows.length){ autoMap(); computeDisplayNames(); buildMappingUI(); buildTable(); }
+    refreshPreview();
+  });
+  $('symbology').addEventListener('change', e=>{ config.symbology = e.target.value; saveConfig(); refreshPreview(); });
+
+  $('confirmBig').addEventListener('change', e=>{ config.confirmBig = e.target.checked; saveConfig(); });
+  $('btnCancel').addEventListener('click', ()=>{ batchCancel = true; $('btnCancel').textContent = '⛔ Cancelando…'; });
+
+  $('simulate').addEventListener('change', e=>{ config.simulate = e.target.checked; saveConfig(); connectPrinter(); });
+
+  $('printerSelect').addEventListener('change', e=>{ selectDevice(e.target.value); });
+  $('btnReconnect').addEventListener('click', connectPrinter);
+  $('btnTest').addEventListener('click', testPrinter);
+  $('btnPrintManual').addEventListener('click', printManual);
+
+  $('tabManual').addEventListener('click', ()=>switchMode('manual'));
+  $('tabImport').addEventListener('click', ()=>switchMode('import'));
+
+  $('btnLoadSheet').addEventListener('click', loadGoogleSheet);
+  $('gsheetUrl').addEventListener('keydown', e=>{ if(e.key==='Enter') loadGoogleSheet(); });
+  $('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+  $('btnSelectAll').addEventListener('click', ()=>{ importRows.forEach(r=>r.__sel=true); buildTable(); updateSelCount(); });
+  $('btnSelectNone').addEventListener('click', ()=>{ importRows.forEach(r=>r.__sel=false); buildTable(); updateSelCount(); });
+  $('btnPrintSelected').addEventListener('click', printSelected);
+
+  $('btnCopyZpl').addEventListener('click', ()=>{
+    navigator.clipboard.writeText($('zpl').value).then(()=>banner('ZPL copiado.', 'ok')).catch(()=>{});
+  });
+}
+
+function switchMode(m){
+  mode = m;
+  $('tabManual').classList.toggle('active', m==='manual');
+  $('tabImport').classList.toggle('active', m==='import');
+  $('modeManual').style.display = m==='manual' ? 'block' : 'none';
+  $('modeImport').style.display = m==='import' ? 'block' : 'none';
+  refreshPreview();
+}
+
+/* ---------- Início ---------- */
+function init(){
+  loadConfig();
+  applyConfigToInputs();
+  renderManualFields();
+  bindEvents();
+  refreshPreview();
+  connectPrinter();
+}
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
