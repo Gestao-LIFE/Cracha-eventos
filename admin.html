@@ -4,20 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Painel do evento · Gestão Life</title>
-    <meta name="theme-color" content="#0d0805" />
+    <title>Painel do evento · Gestão na Veia</title>
+    <meta name="theme-color" content="#05070F" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Instrument+Serif:ital@1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,300;125,400;125,600;125,900&family=Sora:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="assets/css/estilo.css" />
+    <link rel="stylesheet" href="assets/css/gestao-na-veia.css" />
     <link rel="stylesheet" href="assets/css/crachas.css" />
 
-    <!-- Planilhas, impressora Zebra, núcleo do crachá, banco e QR — tudo local -->
+    <!-- Planilhas, impressora Zebra, núcleo do crachá, banco e QR: tudo local -->
     <script src="libs/xlsx-0.18.5.full.min.js"></script>
     <script src="libs/BrowserPrint-3.1.250.min.js" onerror="window.__bpMissing=true"></script>
     <script src="libs/BrowserPrint-Zebra-1.1.250.min.js" onerror="window.__bpMissing=true"></script>
@@ -28,7 +28,7 @@
   </head>
   <body>
     <noscript>
-      <div style="padding: 24px; font-family: sans-serif; color: #fff6ed; background: #0d0805">
+      <div style="padding: 24px; font-family: sans-serif; color: #eff6ff; background: #05070f">
         Este painel precisa de JavaScript habilitado no navegador para funcionar.
       </div>
     </noscript>
@@ -42,14 +42,21 @@
 
     <!-- ===================== LOGIN ===================== -->
     <div class="pagina oculto" id="viewLogin">
-      <div class="luz-canto"></div>
-        <div class="grao"></div>
+      <div class="halo"></div>
       <section class="secao conteudo-relativo">
         <div class="container" style="max-width: 460px">
-          <p class="overline">Gestão Life</p>
-          <h1 class="h1 mt-16" id="loginTitulo">Painel do <span class="acento">evento</span></h1>
-          <p class="corpo mt-16" id="loginHint" style="color: var(--bone-55)">
-            Acesso restrito à equipe.
+          <header class="cartaz__topo" style="margin-bottom: 36px">
+            <div class="marca-gnv" role="img" aria-label="Gestão na Veia"></div>
+            <div class="endosso">
+              <span class="endosso__rotulo">Realização:</span>
+              <div class="marca-gl" role="img" aria-label="Gestão Life"></div>
+            </div>
+          </header>
+
+          <p class="eyebrow">Área restrita</p>
+          <h1 class="h1 mt-16" id="loginTitulo">Painel do <span class="destaque">evento</span></h1>
+          <p class="corpo mt-16" id="loginHint" style="color: var(--frost-55)">
+            Acesso da equipe do credenciamento.
           </p>
 
           <div class="alerta alerta--erro oculto mt-24" id="loginBanner">
@@ -66,7 +73,7 @@
               <label for="l_senha">Senha</label>
               <input type="password" id="l_senha" autocomplete="current-password" required />
             </div>
-            <button type="submit" class="btn btn-primario mt-24" id="btnLogin">Entrar</button>
+            <button type="submit" class="btn btn-cta mt-24" id="btnLogin">Entrar</button>
           </form>
 
           <p class="centro mt-24">
@@ -76,26 +83,28 @@
           </p>
         </div>
       </section>
-      <footer class="rodape">
-        <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao marca-gestao--rodape" />
+
+      <footer class="rodape-canal conteudo-relativo">
+        <div class="simbolo-gl" role="img" aria-label="Gestão Life"></div>
+        <div class="rodape-canal__filete"></div>
+        <span class="rodape-canal__arroba">@gestaolife</span>
       </footer>
     </div>
 
     <!-- ===================== SEM PERMISSÃO ===================== -->
     <div class="pagina oculto" id="viewNegado">
-      <section class="secao">
+      <div class="halo halo--baixo-esquerda"></div>
+      <section class="secao conteudo-relativo">
         <div class="container" style="max-width: 520px">
           <div class="cartao mt-32">
-            <p class="eyebrow">Área restrita</p>
+            <p class="rotulo">Área restrita</p>
             <h2 class="h2 mt-16">Esta conta não tem acesso</h2>
-            <p class="corpo mt-16" style="color: var(--bone-55)">
-              Você entrou como <strong style="color: var(--bone-100)" id="negadoEmail"></strong>, mas
+            <p class="corpo mt-16" style="color: var(--frost-55)">
+              Você entrou como <strong style="color: var(--frost-100)" id="negadoEmail"></strong>, mas
               este e-mail não está na lista de administradores. Peça a quem administra o evento para
-              adicioná-lo em <strong style="color: var(--bone-100)">Configurações → Administradores</strong>.
+              adicionar você em <strong style="color: var(--frost-100)">Configurações, Administradores</strong>.
             </p>
-            <button type="button" class="btn btn-secundario mt-24" id="btnSairNegado" style="width: auto">
-              Sair
-            </button>
+            <button type="button" class="btn btn-secundario btn--curto mt-24" id="btnSairNegado">Sair</button>
           </div>
         </div>
       </section>
@@ -105,15 +114,17 @@
     <div class="pagina oculto" id="viewMain">
       <header class="topo-fixo">
         <div class="topo-fixo__interno">
-          <div class="topo-fixo__marca">
-            <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao" />
+          <div class="marca-gnv" role="img" aria-label="Gestão na Veia"></div>
+          <div class="endosso endosso--topo-painel">
+            <span class="endosso__rotulo">Realização:</span>
+            <div class="marca-gl" role="img" aria-label="Gestão Life"></div>
           </div>
           <div class="topo-fixo__acoes">
-            <span class="pilula" id="pillRealtime">
-              <span class="pilula__led"></span><span id="pillRealtimeTxt">Conectando…</span>
+            <span class="pill" id="pillRealtime">
+              <span class="pill__led"></span><span id="pillRealtimeTxt">Conectando</span>
             </span>
-            <span class="pilula" id="pillPrinter">
-              <span class="pilula__led"></span><span id="pillPrinterTxt">Impressora: —</span>
+            <span class="pill" id="pillPrinter">
+              <span class="pill__led"></span><span id="pillPrinterTxt">Impressora</span>
             </span>
             <span class="legenda" id="userBox"></span>
             <button type="button" class="btn btn-texto btn--curto" id="btnSair">Sair</button>
@@ -121,14 +132,16 @@
         </div>
       </header>
 
-      <section class="secao">
+      <div class="halo halo--faixa-inferior"></div>
+
+      <section class="secao conteudo-relativo">
         <div class="container container--painel">
-          <p class="overline">Credenciamento</p>
-          <h1 class="h1 mt-16" id="tituloPainel">Painel do <span class="acento">evento</span></h1>
+          <p class="eyebrow" id="eyebrowPainel">Credenciamento</p>
+          <h1 class="h1 mt-16" id="tituloPainel">Painel do <span class="destaque">evento</span></h1>
 
           <nav class="abas mt-24" role="tablist">
             <button class="aba" role="tab" data-aba="participantes" aria-selected="true">Participantes</button>
-            <button class="aba" role="tab" data-aba="estacao" aria-selected="false">Estação de impressão</button>
+            <button class="aba" role="tab" data-aba="estacao" aria-selected="false">Estação</button>
             <button class="aba" role="tab" data-aba="cartaz" aria-selected="false">Cartaz QR</button>
             <button class="aba" role="tab" data-aba="config" aria-selected="false">Configurações</button>
           </nav>
@@ -136,23 +149,17 @@
           <!-- ---------- PARTICIPANTES ---------- -->
           <div class="mt-24" id="pane_participantes">
             <div class="grade grade--3">
-              <div class="cartao-dimensao">
-                <div class="cartao-dimensao__topo">
-                  <span class="cartao-dimensao__nome">Inscritos</span>
-                  <span class="cartao-dimensao__pontos" id="totalInscritos">0</span>
-                </div>
+              <div class="cartao-numero">
+                <span class="numero" id="totalInscritos">0</span>
+                <span class="rotulo">Inscritos</span>
               </div>
-              <div class="cartao-dimensao">
-                <div class="cartao-dimensao__topo">
-                  <span class="cartao-dimensao__nome">Crachás impressos</span>
-                  <span class="cartao-dimensao__pontos" id="totalImpressos">0</span>
-                </div>
+              <div class="cartao-numero">
+                <span class="numero" id="totalImpressos">0</span>
+                <span class="rotulo">Crachás impressos</span>
               </div>
-              <div class="cartao-dimensao">
-                <div class="cartao-dimensao__topo">
-                  <span class="cartao-dimensao__nome">Na fila</span>
-                  <span class="cartao-dimensao__pontos" id="totalPendentes">0</span>
-                </div>
+              <div class="cartao-numero">
+                <span class="numero" id="totalPendentes">0</span>
+                <span class="rotulo">Na fila</span>
               </div>
             </div>
 
@@ -160,7 +167,7 @@
               <div class="busca">
                 <input type="text" id="busca" placeholder="Buscar por nome ou empresa…" />
               </div>
-              <button type="button" class="btn btn-primario btn--curto" id="btnNovo">+ Participante</button>
+              <button type="button" class="btn btn-cta btn--curto" id="btnNovo">Novo participante</button>
               <button type="button" class="btn btn-secundario btn--curto" id="btnXlsx">Planilha .xlsx</button>
               <button type="button" class="btn btn-secundario btn--curto" id="btnCsv">CSV</button>
             </div>
@@ -177,8 +184,8 @@
           <div class="mt-24 oculto" id="pane_estacao">
             <div class="grade--estacao">
               <div class="cartao cartao-altura-total">
-                <p class="eyebrow">Impressão automática</p>
-                <p class="corpo mt-16" style="color: var(--bone-55)">
+                <p class="rotulo">Impressão automática</p>
+                <p class="corpo mt-16" style="color: var(--frost-55)">
                   Deixe esta tela aberta no computador ligado à Zebra. Cada inscrição nova imprime o
                   crachá sozinha, com nome, empresa e função.
                 </p>
@@ -192,7 +199,7 @@
                     </span>
                   </label>
                   <div class="grupo-botoes mt-24">
-                    <span class="numero-grande" style="font-size: 40px" id="numPendentes">0</span>
+                    <span class="numero" style="font-size: 38px" id="numPendentes">0</span>
                     <span class="corpo-sm">na fila</span>
                     <span style="flex: 1"></span>
                     <button type="button" class="btn btn-secundario btn--curto" id="btnImprimirPendentes">
@@ -205,12 +212,12 @@
                   <strong id="bannerEstacaoTitulo">Impressão pausada</strong>
                   <p id="bannerEstacaoTexto"></p>
                 </div>
-                <button type="button" class="btn btn-primario mt-16 oculto" id="btnRetomar" style="width: auto">
+                <button type="button" class="btn btn-cta btn--curto mt-16 oculto" id="btnRetomar">
                   Retomar impressão
                 </button>
 
-                <hr class="divisor" />
-                <p class="eyebrow mb-16">Últimos crachás</p>
+                <hr class="filete mt-24 mb-16" />
+                <p class="rotulo mb-16">Últimos crachás</p>
                 <div class="registro" id="registro">
                   <p class="corpo-sm" id="registroVazio">Nada impresso ainda nesta sessão.</p>
                 </div>
@@ -218,7 +225,7 @@
 
               <div>
                 <div class="cartao">
-                  <p class="eyebrow">Impressora</p>
+                  <p class="rotulo">Impressora</p>
                   <p class="corpo-sm mt-8">Precisa do Zebra Browser Print aberto neste computador.</p>
                   <div class="campo mt-16">
                     <label for="printerSelect">Impressora conectada</label>
@@ -242,7 +249,7 @@
                 </div>
 
                 <div class="cartao mt-16">
-                  <p class="eyebrow mb-16">Etiqueta</p>
+                  <p class="rotulo mb-16">Etiqueta</p>
                   <div class="grade grade--2">
                     <div class="campo" style="margin-bottom: 0">
                       <label for="e_w">Largura (mm)</label>
@@ -273,13 +280,13 @@
           <!-- ---------- CARTAZ ---------- -->
           <div class="mt-24 oculto" id="pane_cartaz">
             <div class="cartao">
-              <p class="eyebrow">Cartaz do evento</p>
-              <p class="corpo mt-16" style="color: var(--bone-55)">
-                Imprima em A4 e deixe na recepção. O código abre a inscrição no celular do participante
-                e usa o nome e a cidade definidos em <strong style="color: var(--bone-100)">Configurações</strong>.
+              <p class="rotulo">Cartaz do evento</p>
+              <p class="corpo mt-16" style="color: var(--frost-55)">
+                Imprima em A4 e deixe na recepção. O código abre a inscrição no celular e usa a cidade
+                definida em <strong style="color: var(--frost-100)">Configurações</strong>.
               </p>
               <div class="grupo-botoes mt-24">
-                <button type="button" class="btn btn-primario btn--curto" id="btnImprimirCartaz">
+                <button type="button" class="btn btn-cta btn--curto" id="btnImprimirCartaz">
                   Imprimir cartaz A4
                 </button>
                 <label class="alternador" style="margin-top: 0">
@@ -301,25 +308,43 @@
 
             <div class="mt-24" id="areaCartaz">
               <div class="cartaz" id="cartaz">
-                <div class="luz-canto"></div>
-        <div class="grao"></div>
-                <div class="cartaz__conteudo">
-                  <div>
-                    <p class="overline">Realização · Gestão Life</p>
-                    <p class="cartaz__evento mt-8" id="cartazEvento">Evento</p>
-                    <p class="cartaz__cidade mt-8" id="cartazCidade"></p>
+                <div class="halo"></div>
+                <!-- triângulo da marca: girado, sangrando pelo canto inferior direito -->
+                <svg class="triangulo" viewBox="0 0 1000 1000" aria-hidden="true"
+                     style="width: 52%; right: -16%; bottom: -14%; transform: rotate(28deg)">
+                  <path d="M 327.8 119.7 L 798.7 142.5 A 118 118 0 0 1 905.4 296.2
+                           L 762.6 744.3 A 118 118 0 0 1 553.3 775.9
+                           L 225.2 305.0 A 118 118 0 0 1 327.8 119.7 Z" />
+                </svg>
+
+                <div class="cartaz__interno">
+                  <div class="cartaz__topo">
+                    <div class="marca-gnv" role="img" aria-label="Gestão na Veia"></div>
+                    <div class="endosso">
+                      <span class="endosso__rotulo">Realização:</span>
+                      <div class="marca-gl" role="img" aria-label="Gestão Life"></div>
+                    </div>
                   </div>
 
-                  <div class="cartaz__qr" id="qrBox"></div>
+                  <div class="cartaz__conteudo">
+                    <p class="cartaz__eyebrow" id="cartazEdicao">Credenciamento</p>
+                    <p class="cartaz__titulo">
+                      Faça sua <span class="destaque">inscrição</span>
+                    </p>
+                    <div class="cartaz__qr" id="qrBox"></div>
+                    <div>
+                      <p class="cartaz__chamada">Aponte a câmera do celular para o código</p>
+                      <p class="cartaz__passos">
+                        Leva 30 segundos. Seu crachá já sai impresso aqui na recepção.
+                      </p>
+                    </div>
+                    <p class="cartaz__url" id="cartazUrlImpresso"></p>
+                  </div>
 
                   <div class="cartaz__rodape">
-                    <p class="cartaz__chamada">Aponte a câmera do celular para o código</p>
-                    <p class="cartaz__passos">
-                      Faça sua inscrição em 30 segundos<br />e retire seu crachá aqui na recepção.
-                    </p>
-                    <p class="cartaz__url" id="cartazUrlImpresso"></p>
-                    <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life"
-                         class="marca-gestao marca-gestao--cartaz" />
+                    <div class="simbolo-gl" role="img" aria-label="Gestão Life"></div>
+                    <div class="rodape-canal__filete"></div>
+                    <span class="rodape-canal__arroba">@gestaolife</span>
                   </div>
                 </div>
               </div>
@@ -330,14 +355,14 @@
           <div class="mt-24 oculto" id="pane_config">
             <div class="grade grade--2">
               <form class="cartao cartao-altura-total" id="formConfig">
-                <p class="eyebrow mb-16">Identidade do evento</p>
+                <p class="rotulo mb-16">Identidade do evento</p>
                 <div class="campo">
                   <label for="cfg_nome">Nome do evento</label>
-                  <input type="text" id="cfg_nome" maxlength="80" placeholder="Ex.: Encontro de Donos" />
+                  <input type="text" id="cfg_nome" maxlength="80" placeholder="Ex.: Gestão na Veia" />
                 </div>
                 <div class="campo">
                   <label for="cfg_cidade">Cidade</label>
-                  <input type="text" id="cfg_cidade" maxlength="60" placeholder="Ex.: Belo Horizonte · MG" />
+                  <input type="text" id="cfg_cidade" maxlength="60" placeholder="Ex.: Foz do Iguaçu" />
                   <span class="legenda">Aparece no cartaz do QR Code e na tela de inscrição.</span>
                 </div>
                 <div class="campo">
@@ -349,14 +374,12 @@
                   <label for="cfg_msg">Mensagem de confirmação</label>
                   <input type="text" id="cfg_msg" maxlength="160" />
                 </div>
-                <button type="submit" class="btn btn-primario" id="btnSalvarCfg" style="width: auto">
-                  Salvar
-                </button>
+                <button type="submit" class="btn btn-cta btn--curto" id="btnSalvarCfg">Salvar</button>
               </form>
 
               <div>
                 <div class="cartao">
-                  <p class="eyebrow mb-16">Administradores</p>
+                  <p class="rotulo mb-16">Administradores</p>
                   <p class="corpo-sm">
                     Quem pode abrir este painel. A pessoa ainda precisa criar a conta na tela de login.
                   </p>
@@ -371,7 +394,7 @@
                 </div>
 
                 <div class="cartao mt-16">
-                  <p class="eyebrow mb-16">Minha senha</p>
+                  <p class="rotulo mb-16">Minha senha</p>
                   <div class="campo" style="margin-bottom: 0">
                     <label for="novaSenha">Nova senha</label>
                     <input type="password" id="novaSenha" autocomplete="new-password" />
@@ -386,15 +409,17 @@
         </div>
       </section>
 
-      <footer class="rodape">
-        <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao marca-gestao--rodape" />
+      <footer class="rodape-canal conteudo-relativo" style="max-width: 1120px">
+        <div class="simbolo-gl" role="img" aria-label="Gestão Life"></div>
+        <div class="rodape-canal__filete"></div>
+        <span class="rodape-canal__arroba">@gestaolife</span>
       </footer>
     </div>
 
     <!-- ===================== MODAL PARTICIPANTE ===================== -->
     <div class="overlay oculto" id="modalFundo">
       <div class="overlay__caixa">
-        <p class="eyebrow" id="modalTitulo">Novo participante</p>
+        <p class="rotulo" id="modalTitulo">Novo participante</p>
 
         <div class="alerta alerta--erro oculto mt-16" id="modalBanner">
           <strong>Confira os dados</strong>
@@ -432,7 +457,7 @@
           </div>
           <div class="grupo-botoes" style="justify-content: flex-end">
             <button type="button" class="btn btn-texto btn--curto" id="btnModalCancelar">Cancelar</button>
-            <button type="submit" class="btn btn-primario btn--curto" id="btnModalSalvar">Salvar</button>
+            <button type="submit" class="btn btn-cta btn--curto" id="btnModalSalvar">Salvar</button>
           </div>
         </form>
       </div>
@@ -497,17 +522,15 @@
           avisoTimer = setTimeout(() => el.remove(), 5000);
         }
         function alerta(id, titulo, texto, visivel) {
-          const box = $(id);
           if (titulo != null && $(id + 'Titulo')) $(id + 'Titulo').textContent = titulo;
           if (texto != null && $(id + 'Texto')) $(id + 'Texto').textContent = texto;
-          mostrar(box, visivel !== false);
+          mostrar($(id), visivel !== false);
         }
 
-        function mostrarView(qual) {
+        const mostrarView = (qual) =>
           ['viewCarregando', 'viewLogin', 'viewNegado', 'viewMain'].forEach((v) =>
             mostrar(v, v === qual)
           );
-        }
 
         /* ============================ abas ============================ */
         document.querySelectorAll('.aba').forEach((aba) =>
@@ -527,7 +550,7 @@
           sel.innerHTML = '';
           const vazio = document.createElement('option');
           vazio.value = '';
-          vazio.textContent = '—';
+          vazio.textContent = 'Selecione…';
           sel.appendChild(vazio);
           opcoes.forEach((v) => {
             const o = document.createElement('option');
@@ -598,9 +621,9 @@
                 options: { emailRedirectTo: new URL('admin.html', location.href).href },
               });
               if (error) throw error;
+              $('loginBanner').className = 'alerta alerta--sucesso mt-24';
               alerta('loginBanner', 'Conta criada',
                 'Se chegar um e-mail de confirmação, clique no link antes de entrar. O e-mail também precisa estar na lista de administradores.');
-              $('loginBanner').className = 'alerta alerta--sucesso mt-24';
             } else {
               const { error } = await sb.auth.signInWithPassword({ email, password: senha });
               if (error) throw error;
@@ -620,13 +643,13 @@
           const cadastro = f.dataset.modo !== 'cadastro';
           f.dataset.modo = cadastro ? 'cadastro' : '';
           $('loginTitulo').innerHTML = cadastro
-            ? 'Criar <span class="acento">conta</span>'
-            : 'Painel do <span class="acento">evento</span>';
+            ? 'Criar <span class="destaque">conta</span>'
+            : 'Painel do <span class="destaque">evento</span>';
           $('loginHint').textContent = cadastro
             ? 'Crie a conta com o e-mail já autorizado pela equipe.'
-            : 'Acesso restrito à equipe.';
+            : 'Acesso da equipe do credenciamento.';
           $('btnLogin').textContent = cadastro ? 'Criar conta' : 'Entrar';
-          $('alternarCadastro').textContent = cadastro ? '← Já tenho conta' : 'Primeiro acesso? Criar conta';
+          $('alternarCadastro').textContent = cadastro ? 'Já tenho conta' : 'Primeiro acesso? Criar conta';
           $('l_senha').autocomplete = cadastro ? 'new-password' : 'current-password';
         });
 
@@ -683,25 +706,25 @@
           $('listaParticipantes').innerHTML = linhas
             .map((p) => {
               const dados = [
-                p.segmento && '🍽 ' + esc(p.segmento),
-                p.faturamento && '💰 ' + esc(p.faturamento),
-                p.sistema && '💻 ' + esc(p.sistema),
-                '🕒 ' + fmtData(p.criado_em),
-                p.origem === 'admin' ? '✍️ recepção' : '',
+                p.segmento && esc(p.segmento),
+                p.faturamento && esc(p.faturamento),
+                p.sistema && esc(p.sistema),
+                fmtData(p.criado_em),
+                p.origem === 'admin' ? 'cadastro na recepção' : '',
               ].filter(Boolean);
               return `
               <article class="linha-participante${p.impresso_em ? '' : ' linha-participante--pendente'}" data-id="${p.id}">
                 <div class="linha-participante__corpo">
                   <div class="linha-participante__topo">
                     <span class="linha-participante__nome">${esc(p.nome)}</span>
-                    <span class="chip ${p.impresso_em ? 'chip--faixa-5' : 'chip--faixa-4'}">
-                      ${p.impresso_em ? 'Crachá impresso' : 'Na fila'}
+                    <span class="pill ${p.impresso_em ? 'pill--ok' : ''}">
+                      ${p.impresso_em ? 'Impresso' : 'Na fila'}
                     </span>
                   </div>
                   <p class="linha-participante__empresa">
-                    ${esc(p.empresa || '—')}${p.funcao ? ' · <strong style="color:var(--bone-100)">' + esc(p.funcao) + '</strong>' : ''}
+                    ${esc(p.empresa || 'Sem empresa')}${p.funcao ? ' · <strong style="color:var(--frost-100)">' + esc(p.funcao) + '</strong>' : ''}
                   </p>
-                  <div class="linha-participante__dados">${dados.map((d) => '<span>' + d + '</span>').join('')}</div>
+                  <div class="linha-participante__dados">${dados.map((d) => '<span>' + d + '</span>').join(' · ')}</div>
                 </div>
                 <div class="linha-participante__acoes">
                   <button type="button" class="btn btn-secundario btn--curto" data-acao="imprimir">
@@ -845,8 +868,8 @@
         });
 
         /* ============================ tempo real ============================ */
-        function pilula(id, estado, txt) {
-          $(id).className = 'pilula' + (estado ? ' pilula--' + estado : '');
+        function pill(id, estado, txt) {
+          $(id).className = 'pill' + (estado ? ' pill--' + estado : '');
           $(id + 'Txt').textContent = txt;
         }
         function ligarRealtime() {
@@ -864,10 +887,10 @@
               }
             )
             .subscribe((status) => {
-              if (status === 'SUBSCRIBED') pilula('pillRealtime', 'ok', 'Tempo real ativo');
+              if (status === 'SUBSCRIBED') pill('pillRealtime', 'ok', 'Tempo real ativo');
               else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR')
-                pilula('pillRealtime', 'aviso', 'Tempo real: reconectando…');
-              else if (status === 'CLOSED') pilula('pillRealtime', '', 'Tempo real desligado');
+                pill('pillRealtime', 'aviso', 'Tempo real reconectando');
+              else if (status === 'CLOSED') pill('pillRealtime', '', 'Tempo real desligado');
             });
         }
         function pararRealtime() {
@@ -885,11 +908,18 @@
           $('cfg_cidade').value = cfgEvento.evento_cidade || '';
           $('cfg_zap').value = cfgEvento.whatsapp_link || '';
           $('cfg_msg').value = cfgEvento.mensagem_confirmacao || '';
-          if (cfgEvento.evento_nome) {
-            $('tituloPainel').textContent = cfgEvento.evento_nome;
-            document.title = 'Painel · ' + cfgEvento.evento_nome;
-          }
+          aplicarIdentidade();
           montarCartaz();
+        }
+
+        function aplicarIdentidade() {
+          const nome = (cfgEvento.evento_nome || '').trim();
+          const cidade = (cfgEvento.evento_cidade || '').trim();
+          if (nome) {
+            $('tituloPainel').textContent = nome;
+            document.title = 'Painel · ' + nome;
+          }
+          $('eyebrowPainel').textContent = cidade ? 'Credenciamento · ' + cidade : 'Credenciamento';
         }
 
         $('formConfig').addEventListener('submit', async (ev) => {
@@ -908,10 +938,7 @@
           const { error } = await sb.from(CRACHA_SUPABASE.TABELA_CONFIG).upsert(linhas);
           if (error) { aviso('Erro ao salvar: ' + error.message, true); return; }
           linhas.forEach((l) => (cfgEvento[l.chave] = l.valor));
-          if (cfgEvento.evento_nome) {
-            $('tituloPainel').textContent = cfgEvento.evento_nome;
-            document.title = 'Painel · ' + cfgEvento.evento_nome;
-          }
+          aplicarIdentidade();
           montarCartaz();
           aviso('Configurações salvas. A inscrição e o cartaz já usam os novos textos.');
         });
@@ -953,7 +980,7 @@
           const { error } = await sb.from('cracha_admins').insert({ email });
           if (error) { aviso('Erro ao adicionar: ' + error.message, true); return; }
           $('novoAdmin').value = '';
-          aviso('Pronto! Agora ' + email + ' pode criar a conta na tela de login.');
+          aviso('Pronto. Agora ' + email + ' pode criar a conta na tela de login.');
           carregarAdmins();
         });
 
@@ -962,8 +989,8 @@
 
         function montarCartaz() {
           const url = urlInscricao();
-          $('cartazEvento').textContent = (cfgEvento.evento_nome || '').trim() || 'Inscrição do evento';
-          $('cartazCidade').textContent = (cfgEvento.evento_cidade || '').trim();
+          const cidade = (cfgEvento.evento_cidade || '').trim();
+          $('cartazEdicao').textContent = cidade ? 'Edição ' + cidade : 'Credenciamento';
           $('cartazUrl').textContent = url;
           $('cartazUrlImpresso').textContent = url.replace(/^https?:\/\//, '');
           try {
@@ -1007,22 +1034,22 @@
 
         /* ============================ impressora ============================ */
         function conectarImpressora() {
-          if (cfgEst.simulate) { pilula('pillPrinter', 'aviso', 'Modo simulação'); return; }
+          if (cfgEst.simulate) { pill('pillPrinter', 'aviso', 'Modo simulação'); return; }
           if (typeof BrowserPrint === 'undefined' || window.__bpMissing) {
-            pilula('pillPrinter', 'erro', 'Browser Print ausente');
+            pill('pillPrinter', 'erro', 'Browser Print ausente');
             alerta('bannerBP', 'Browser Print não encontrado',
-              'O programa Zebra Browser Print não está rodando neste computador. Abra-o e clique em Reconectar — ou use o Modo simulação para testar.');
+              'O programa Zebra Browser Print não está rodando neste computador. Abra o programa e clique em Reconectar, ou use o Modo simulação para testar.');
             preencherImpressoras([]);
             return;
           }
           mostrar('bannerBP', false);
-          pilula('pillPrinter', '', 'Procurando impressoras…');
+          pill('pillPrinter', '', 'Procurando');
           BrowserPrint.getLocalDevices(
             (devices) => {
               deviceList = (devices || []).filter((d) => d.deviceType === 'printer' || !d.deviceType);
               preencherImpressoras(deviceList);
               if (!deviceList.length) {
-                pilula('pillPrinter', 'erro', 'Nenhuma impressora');
+                pill('pillPrinter', 'erro', 'Nenhuma impressora');
                 alerta('bannerBP', 'Nenhuma impressora encontrada',
                   'O Browser Print está rodando, mas não achou a Zebra. Ligue a impressora, confira o cabo USB e clique em Reconectar.');
                 return;
@@ -1036,7 +1063,7 @@
               );
             },
             () => {
-              pilula('pillPrinter', 'erro', 'Browser Print ausente');
+              pill('pillPrinter', 'erro', 'Browser Print ausente');
               preencherImpressoras([]);
             },
             'printer'
@@ -1045,7 +1072,7 @@
         function preencherImpressoras(lista) {
           const sel = $('printerSelect');
           sel.innerHTML = '';
-          if (!lista.length) { sel.innerHTML = '<option value="">— nenhuma —</option>'; return; }
+          if (!lista.length) { sel.innerHTML = '<option value="">Nenhuma</option>'; return; }
           lista.forEach((d) => {
             const o = document.createElement('option');
             o.value = d.name;
@@ -1058,7 +1085,7 @@
           $('printerSelect').value = nome;
           cfgEst.printerName = nome;
           salvarCfgEstacao();
-          if (selectedDevice) pilula('pillPrinter', 'ok', selectedDevice.name);
+          if (selectedDevice) pill('pillPrinter', 'ok', selectedDevice.name);
         }
         $('printerSelect').addEventListener('change', () => escolherImpressora($('printerSelect').value));
         $('btnReconectar').addEventListener('click', conectarImpressora);
@@ -1080,11 +1107,11 @@
         $('btnTeste').addEventListener('click', async () => {
           const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
           const layout = C.buildLayout('texto',
-            { nome: 'Teste OK', empresa: 'Impressora pronta', cargo: cfgEst.widthMm + '×' + cfgEst.heightMm + ' mm' },
+            { nome: 'Teste OK', empresa: 'Impressora pronta', cargo: cfgEst.widthMm + 'x' + cfgEst.heightMm + ' mm' },
             W, H, cfgEst);
           try {
             const r = await sendZpl(C.layoutToZPL(layout, W, H, 1));
-            aviso(r.simulated ? 'Teste simulado — veja o ZPL no console (F12).' : 'Etiqueta de teste enviada.');
+            aviso(r.simulated ? 'Teste simulado. Veja o ZPL no console (F12).' : 'Etiqueta de teste enviada.');
           } catch (e) {
             aviso('Falha no teste: ' + e, true);
           }
@@ -1191,7 +1218,7 @@
               pausadaPorErro = true;
               mostrar('btnRetomar', true);
               alerta('bannerEstacao', 'Impressão pausada',
-                String(e) + ' — resolva o problema e clique em “Retomar impressão”. Ninguém fica sem crachá.');
+                String(e) + '. Resolva o problema e clique em Retomar impressão. Ninguém fica sem crachá.');
             }
           }
           processando = false;
