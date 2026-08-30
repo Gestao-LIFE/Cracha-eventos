@@ -1,110 +1,56 @@
 # Endereço do sistema
 
-## Situação atual: temporário, no github.io
+O sistema atende em **https://crachas.gestaolife.com**:
 
-O sistema está publicado em:
+- Painel da recepção: <https://crachas.gestaolife.com/admin.html>
+- Inscrição do participante: <https://crachas.gestaolife.com/inscricao.html>
+- Console de impressão em lote: <https://crachas.gestaolife.com>
 
-- Painel: https://gestao-life.github.io/Cracha-eventos/admin.html
-- Inscrição: https://gestao-life.github.io/Cracha-eventos/inscricao.html
+O arquivo `CNAME` na raiz do repositório é o que diz ao GitHub Pages para
+atender nesse domínio. Se ele for removido, o site passa a atender em
+`gestao-life.github.io/Cracha-eventos/`.
 
-O arquivo `CNAME` foi removido de propósito. Enquanto ele existia, o GitHub
-redirecionava o github.io para `crachas.gestaolife.com`, e esse domínio **não
-aponta para o GitHub Pages**: tem um registro A para `179.198.109.17`, uma
-máquina que serve uma cópia antiga do site. Por isso a raiz abria e as páginas
-novas davam 404.
+> **O QR Code do cartaz guarda o endereço da página onde foi gerado.** Gere e
+> imprima o cartaz sempre a partir do endereço definitivo. Um cartaz gerado num
+> endereço temporário leva os participantes para um lugar que pode deixar de
+> existir.
 
 ---
 
-## Passo a passo para voltar ao crachas.gestaolife.com
+## Como o domínio está configurado
 
-O DNS do `gestaolife.com` é administrado na **Hostinger** (os servidores de nome
-são `ns1.dns-parking.com` e `ns2.dns-parking.com`).
-
-### 1. Abrir o editor de DNS
-
-1. Entre em <https://hpanel.hostinger.com>.
-2. Menu **Domínios** e escolha **gestaolife.com**.
-3. Abra **DNS / Servidores de nomes** (em alguns temas: **Zona DNS**).
-
-### 2. Apagar o registro errado
-
-Na lista, ache a linha:
+O DNS do `gestaolife.com` é administrado na **Hostinger** (servidores de nome
+`ns1.dns-parking.com` e `ns2.dns-parking.com`).
 
 | Tipo | Nome | Aponta para |
 |---|---|---|
-| A | `crachas` | `179.198.109.17` |
+| CNAME | `crachas` | `gestao-life.github.io` |
 
-Clique em **Excluir**. Esse é o registro que está mandando o domínio para a
-máquina errada. Ele precisa sair antes do próximo passo: a Hostinger não aceita
-um CNAME com o mesmo nome de um A já existente.
+Esse CNAME resolve para os quatro endereços do GitHub Pages: `185.199.108.153`,
+`185.199.109.153`, `185.199.110.153` e `185.199.111.153`.
 
-> Confira antes se alguém da equipe usa alguma coisa nesse endereço. Hoje ele
-> responde só com uma cópia antiga deste mesmo sistema, então é resíduo.
-
-### 3. Criar o registro certo
-
-Clique em **Adicionar registro** e preencha:
-
-| Campo | Valor |
-|---|---|
-| Tipo | `CNAME` |
-| Nome | `crachas` |
-| Aponta para (Target) | `gestao-life.github.io` |
-| TTL | deixe o padrão, ou `300` para propagar mais rápido |
-
-Salve.
-
-Se por algum motivo o painel não aceitar CNAME nesse nome, dá para usar quatro
-registros **A** no lugar, todos com o nome `crachas`:
-
-```
-185.199.108.153
-185.199.109.153
-185.199.110.153
-185.199.111.153
-```
-
-### 4. Esperar a propagação
-
-O registro antigo está com TTL de 4 horas, então quem já consultou o domínio
-hoje pode continuar vendo o endereço velho por até esse tempo. Normalmente é
-bem mais rápido.
-
-Para conferir, no Terminal do Mac:
+### Conferir
 
 ```bash
 nslookup crachas.gestaolife.com
 ```
 
-Tem que responder um IP `185.199.10x.153` (ou o nome `gestao-life.github.io`),
-e não mais o `179.198.109.17`.
-
-Pelo navegador, dá para acompanhar em <https://dnschecker.org>, buscando
-`crachas.gestaolife.com`.
-
-### 5. Devolver o domínio ao sistema
-
-Quando o passo 4 confirmar, recrie o arquivo `CNAME` na raiz do repositório com
-uma única linha:
-
-```
-crachas.gestaolife.com
-```
-
-Ou, pelo GitHub: **Settings → Pages → Custom domain**, escrever
-`crachas.gestaolife.com` e salvar (o GitHub cria o arquivo sozinho). Marque
-**Enforce HTTPS** assim que o certificado for emitido, o que leva alguns
-minutos.
+Tem que responder `canonical name = gestao-life.github.io` e os IPs acima.
 
 ---
 
-## Cuidado com o cartaz
+## Histórico: o 404 de 30/08/2026
 
-O QR Code guarda o endereço da página onde foi gerado.
+Durante a primeira publicação, `crachas.gestaolife.com` tinha um registro **A**
+apontando para `179.198.109.17`, uma máquina que servia uma cópia antiga do
+site. O resultado era confuso: a raiz abria normalmente (o `index.html` velho
+estava lá) e `/admin.html` e `/inscricao.html` davam 404, mesmo com a publicação
+do GitHub Pages tendo funcionado.
 
-- Cartaz gerado **agora** aponta para o github.io.
-- Cartaz gerado **depois do passo 5** aponta para o crachas.gestaolife.com.
+Como o `CNAME` fazia o GitHub redirecionar o github.io para esse domínio, não
+sobrava nenhum endereço acessível. A saída foi remover o `CNAME` temporariamente
+para liberar o github.io, corrigir o DNS na Hostinger e devolver o arquivo.
 
-Para testar hoje, imprima à vontade. **O cartaz definitivo do evento só depois
-do passo 5**, senão os participantes vão apontar a câmera para um endereço que
-deixou de existir.
+**Se o sintoma voltar** (raiz abre, páginas internas dão 404), a primeira coisa a
+checar é o `nslookup` acima: quase sempre é o domínio apontando para outro lugar,
+não problema no código nem na publicação.
