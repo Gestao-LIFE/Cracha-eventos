@@ -24,7 +24,7 @@ para os nomes acima** OU ajuste os dois `<script src="libs/...">` no topo do
 ## Onde baixar
 
 1. Acesse a página oficial do **Zebra Browser Print**:
-   https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html
+   https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html
 2. Baixe e instale o **Zebra Browser Print** (Windows ou macOS). É ele que roda
    em segundo plano e fala com a impressora USB.
 3. Os arquivos `.js` do SDK acompanham o pacote de desenvolvedor / a instalação.

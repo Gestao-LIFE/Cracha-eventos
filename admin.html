@@ -226,7 +226,11 @@
               <div>
                 <div class="cartao">
                   <p class="rotulo">Impressora</p>
-                  <p class="corpo-sm mt-8">Precisa do Zebra Browser Print aberto neste computador.</p>
+                  <p class="corpo-sm mt-8">
+                    Precisa do Zebra Browser Print aberto neste computador.
+                    <a href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html"
+                       target="_blank" rel="noopener" id="linkBaixarBP">Baixar</a>
+                  </p>
                   <div class="campo mt-16">
                     <label for="printerSelect">Impressora conectada</label>
                     <select id="printerSelect"></select>
@@ -242,9 +246,29 @@
                       <span class="legenda">Gera o crachá sem imprimir. Para testar sem papel.</span>
                     </span>
                   </label>
+                  <!-- Os dois atalhos que resolvem a montagem de um PC novo:
+                       baixar o programa e liberar o certificado do localhost. -->
                   <div class="alerta alerta--aviso oculto mt-16" id="bannerBP">
                     <strong id="bannerBPTitulo">Aviso</strong>
                     <p id="bannerBPTexto"></p>
+                    <div class="grupo-botoes mt-16">
+                      <a class="btn btn-secundario btn--curto"
+                         href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html"
+                         target="_blank" rel="noopener">Baixar o Browser Print</a>
+                      <a class="btn btn-texto btn--curto" href="https://localhost:9101"
+                         target="_blank" rel="noopener">Liberar o certificado</a>
+                    </div>
+                    <p class="legenda mt-8">
+                      Instale o programa, abra o endereço do certificado uma vez e aceite o aviso
+                      de segurança. Depois clique em Reconectar. A Zebra pede um cadastro rápido
+                      para liberar o download.
+                      <strong style="color: var(--frost-100)">No Mac, adicione a impressora em
+                      Ajustes do Sistema, Impressoras e Scanners, antes de abrir o Browser
+                      Print</strong>: no macOS ele só enxerga a Zebra depois que ela já está no
+                      sistema. Passo a passo em
+                      <a href="https://support.zebra.com/article/Installing-Zebra-Browser-Print-for-Mac"
+                         target="_blank" rel="noopener">o guia oficial da Zebra</a>.
+                    </p>
                   </div>
                 </div>
 
