@@ -66,6 +66,7 @@ comment on column public.cracha_config.publico is
 
 insert into public.cracha_config (chave, valor, publico) values
   ('evento_nome',           'Evento Gestão Life',                        true),
+  ('evento_cidade',         '',                                          true),
   ('whatsapp_link',         '',                                          true),
   ('mensagem_confirmacao',  'Cadastro concluído! Retire seu crachá na recepção.', true)
 on conflict (chave) do nothing;

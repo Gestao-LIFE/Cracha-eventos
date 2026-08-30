@@ -137,11 +137,15 @@ participante ao computador da recepção. Só isso: nada é instalado em servido
 
 1. **Entrar no painel** — abra `admin.html` e faça login. O e-mail precisa estar
    na lista de administradores (veja 4.4).
-2. **Configurações** — preencha o **nome do evento**, o **link do grupo do
-   WhatsApp** (`https://chat.whatsapp.com/…`) e a mensagem de confirmação.
-   O formulário do celular passa a usar esses textos na hora.
-3. **Cartaz QR** — aba **Cartaz QR** → **Imprimir cartaz (A4)**. O código aponta
-   para o `inscricao.html` publicado; imprima e deixe na mesa da recepção.
+2. **Configurações** — preencha o **nome do evento**, a **cidade**, o **link do
+   grupo do WhatsApp** (`https://chat.whatsapp.com/…`) e a mensagem de
+   confirmação. O formulário do celular e o cartaz passam a usar esses textos na
+   hora — dá para mudar a cidade a cada edição do evento sem tocar em código.
+3. **Cartaz QR** — aba **Cartaz QR** → **Imprimir cartaz A4**. O cartaz sai na
+   identidade da marca (fundo Ash com a luz de brasa, nome e cidade do evento e a
+   logo Gestão Life), e o QR fica sempre num cartão claro para a câmera ler sem
+   erro. Se a impressora for comum, marque **Fundo claro** antes de imprimir:
+   mesma identidade, muito menos tinta.
 4. **Teste de verdade** — com a impressora ligada, faça uma inscrição pelo seu
    celular e confira se o crachá sai sozinho.
 
@@ -214,7 +218,29 @@ telas passam a usar as novas opções.
 
 ---
 
-## 5. Detalhes técnicos (ZD220, 203 dpi)
+## 5. Identidade visual
+
+As telas usam o **Design System v1.0 da Gestão Life** — o mesmo da Escola de
+Gerentes. `assets/css/estilo.css` é uma **cópia fiel** desse arquivo: para
+atualizar a identidade, basta substituí-lo pela versão nova.
+
+- Tema escuro e quente: **Ash** (fundos), **Ember** (marca) e **Bone** (texto).
+- Tipografia Instrument Sans + Instrument Serif (itálico) nos acentos da marca.
+- O que existe só aqui — cartaz do QR, linhas-card dos participantes, abas e as
+  regras de impressão — fica em `assets/css/crachas.css`, sempre usando os
+  tokens do sistema (nenhuma cor solta).
+
+As quatro regras do design system valem nestas telas:
+cards lado a lado com a mesma altura; corpo de texto nunca abaixo de 16px;
+**nunca tabela crua** (a lista de participantes são linhas-card); e conteúdo
+preenchendo a tela.
+
+> O `index.html` (console de impressão manual) segue com o visual claro
+> original — ele é a ferramenta interna de lote e não passou pelo redesenho.
+
+---
+
+## 6. Detalhes técnicos (ZD220, 203 dpi)
 
 - 203 dpi = **8 dots/mm** (ex.: 90 mm → 720 dots).
 - Toda etiqueta começa com `^XA` e termina com `^XZ`.
@@ -224,7 +250,7 @@ telas passam a usar as novas opções.
 
 ---
 
-## 6. Solução de problemas
+## 7. Solução de problemas
 
 **A impressora não aparece (status vermelho)**
 - O **Zebra Browser Print** está aberto/rodando? (ícone na bandeja)
@@ -278,7 +304,7 @@ telas passam a usar as novas opções.
 
 ---
 
-## 7. Publicar no GitHub Pages (abrir em outro PC)
+## 8. Publicar no GitHub Pages (abrir em outro PC)
 
 O projeto é um site estático (sem build), então dá pra publicar no **GitHub
 Pages** e abrir em qualquer PC pela URL. O repositório já está iniciado e
@@ -324,6 +350,10 @@ cracha/
 ├── index.html                 ← console de impressão manual / em lote
 ├── README.md                  ← este arquivo
 ├── exemplo-participantes.csv  ← planilha de exemplo (5 pessoas)
+├── assets/
+│   ├── css/estilo.css         ← Design System v1.0 da Gestão Life (cópia fiel)
+│   ├── css/crachas.css        ← só o que existe neste sistema (cartaz, linhas-card)
+│   └── img/logo-gestao-life.svg
 ├── js/
 │   ├── cracha-core.js         ← layout do crachá + ZPL (usado pelas duas telas)
 │   └── supabase-config.js     ← endereço do banco + opções dos campos

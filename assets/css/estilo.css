@@ -1,0 +1,1871 @@
+/*
+  Escola de Gerentes · Gestão Life
+  Estilo baseado no Design System v1.0 da Escola de Gerentes.
+  Tema único: escuro e quente (Ash / Ember / Bone). Mobile-first.
+
+  Regras obrigatórias do Carlos, aplicadas neste arquivo:
+  1. Cards lado a lado sempre com a mesma altura (grid + stretch).
+  2. Corpo de texto nunca abaixo de 16px. Layout redesenha, fonte não encolhe.
+  3. Nunca tabela crua: listas viram linhas-card.
+  4. Conteúdo preenche a tela, sem espremer no topo.
+*/
+
+/* ---------------------------------------------------------------------
+   1. Tokens (Design System)
+   --------------------------------------------------------------------- */
+:root {
+  /* Ash — fundos (marrom-preto quente, nunca preto puro) */
+  --ash-000: #0d0805;
+  --ash-050: #140c07;
+  --ash-100: #1b100a;
+  --ash-200: #241710;
+  --ash-300: #31211a;
+
+  /* Ember — marca e cor */
+  --ember-200: #ffd9b5;
+  --ember-300: #ffb35c;
+  --ember-500: #ff9736;
+  --ember-700: #ff6b1a;
+  --ember-900: #b33f06;
+
+  /* Bone — texto sobre fundo escuro (branco quente, nunca #fff puro) */
+  --bone-100: #fff6ed;
+  --bone-72: rgba(255, 246, 237, 0.72);
+  --bone-55: rgba(255, 246, 237, 0.55);
+  --bone-40: rgba(255, 246, 237, 0.4);
+  --hairline: rgba(255, 214, 178, 0.13);
+  --hairline-forte: rgba(255, 214, 178, 0.22);
+  --divisor-sutil: rgba(255, 214, 178, 0.07);
+
+  /* Semânticas */
+  --success: #5bd695;
+  --warning: #f5b000;
+  --danger: #e0656b;
+
+  /* Radius */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
+  --r-pill: 9999px;
+
+  /* Elevação e luz */
+  --sombra-md: 0 14px 36px rgba(0, 0, 0, 0.55);
+  --glow-ember: 0 0 44px rgba(255, 107, 26, 0.45);
+  --glow-suave: 0 0 30px rgba(255, 151, 54, 0.28);
+
+  /* Tipografia */
+  --fonte-serifa: "Instrument Serif", Georgia, serif;
+  --fonte-sans: "Instrument Sans", -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+
+  --largura-conteudo: 640px;
+  --margem-lateral: 20px;
+}
+
+/* ---------------------------------------------------------------------
+   2. Reset mínimo
+   --------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ash-000);
+  color: var(--bone-72);
+  font-family: var(--fonte-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--ember-300);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Foco visível (teclado) */
+:focus-visible {
+  outline: 2px solid var(--ember-500);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* ---------------------------------------------------------------------
+   3. Tipografia
+   --------------------------------------------------------------------- */
+.h0 {
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: clamp(34px, 9vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--bone-100);
+}
+
+.h1 {
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: clamp(28px, 7vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--bone-100);
+}
+
+.h2 {
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: clamp(22px, 5.5vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--bone-100);
+}
+
+.h3,
+h4 {
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+  color: var(--bone-100);
+}
+
+.h4,
+h5 {
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--bone-100);
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--bone-72);
+}
+
+.corpo {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--bone-72);
+}
+
+.corpo-sm {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--bone-55);
+}
+
+.legenda {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--bone-40);
+}
+
+.eyebrow {
+  font-family: var(--fonte-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ember-300);
+}
+
+.overline {
+  font-family: var(--fonte-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone-40);
+}
+
+/* trecho em serifa itálica: assinatura da marca. 1 a 3 palavras, nunca o título inteiro */
+.acento {
+  font-family: var(--fonte-serifa);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ember-500);
+}
+
+.numero-grande {
+  font-family: var(--fonte-sans);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: clamp(40px, 14vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--bone-100);
+  filter: drop-shadow(0 0 26px rgba(255, 107, 26, 0.4));
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---------------------------------------------------------------------
+   4. Layout base
+   --------------------------------------------------------------------- */
+.pagina {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--margem-lateral);
+}
+
+.container--largo {
+  max-width: 860px;
+}
+
+.secao {
+  padding: 40px 0;
+}
+
+@media (min-width: 720px) {
+  :root {
+    --margem-lateral: 32px;
+  }
+  .secao {
+    padding: 64px 0;
+  }
+}
+
+.rodape {
+  padding: 28px var(--margem-lateral) 48px;
+  text-align: center;
+}
+
+.rodape__logo {
+  height: 26px;
+  width: auto;
+  margin: 0 auto;
+  opacity: 0.8;
+}
+
+/* Marca da Escola de Gerentes no topo do formulário (imagem no lugar do texto) */
+.marca-escola {
+  width: min(340px, 78vw);
+  height: auto;
+}
+
+/* Luz de brasa: só em telas de capa/resultado. Nunca em telas densas. */
+.luz-canto {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.luz-canto::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 60% at 100% 0%,
+    rgba(255, 151, 54, 0.5) 0%,
+    rgba(255, 107, 26, 0.26) 35%,
+    rgba(179, 63, 6, 0.1) 60%,
+    rgba(179, 63, 6, 0) 100%
+  );
+  filter: blur(50px);
+  mix-blend-mode: screen;
+}
+
+.luz-inferior::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 107, 26, 0.3) 0%,
+    rgba(255, 107, 26, 0.08) 45%,
+    rgba(255, 107, 26, 0) 100%
+  );
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grão: textura sutil, só em capa/hero */
+.grao {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+.conteudo-relativo {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------------
+   5. Cards e superfícies
+   --------------------------------------------------------------------- */
+.cartao {
+  background: var(--ash-100);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xl);
+  padding: 24px;
+}
+
+@media (min-width: 560px) {
+  .cartao {
+    padding: 28px;
+  }
+}
+
+.cartao--compacto {
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+}
+
+.cartao--interativa {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cartao--interativa:hover {
+  border-color: rgba(255, 107, 26, 0.35);
+  box-shadow: var(--glow-suave);
+}
+
+/* Grade de cards: regra 1, sempre mesma altura */
+.grade {
+  display: grid;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.grade--2 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.grade--3 {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.cartao-altura-total {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.divisor {
+  border: none;
+  border-top: 1px solid var(--hairline);
+  margin: 20px 0;
+}
+
+/* ---------------------------------------------------------------------
+   6. Botões e CTAs
+   --------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--fonte-sans);
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: var(--r-pill);
+  padding: 16px 32px;
+  min-height: 52px;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primario {
+  background: linear-gradient(180deg, var(--ember-500) 0%, var(--ember-700) 100%);
+  color: var(--ash-000);
+  box-shadow: var(--glow-ember);
+  width: 100%;
+}
+
+@media (min-width: 560px) {
+  .btn-primario {
+    width: auto;
+  }
+}
+
+.btn-primario:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-secundario {
+  background: transparent;
+  color: var(--bone-100);
+  border: 1px solid var(--hairline-forte);
+}
+
+.btn-secundario:hover {
+  border-color: var(--ember-500);
+}
+
+.btn-texto {
+  background: transparent;
+  color: var(--bone-55);
+  padding: 12px 16px;
+  min-height: 44px;
+}
+
+.btn-texto:hover {
+  color: var(--bone-100);
+}
+
+.btn-perigo {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(224, 101, 107, 0.4);
+}
+
+.btn-perigo:hover {
+  background: rgba(224, 101, 107, 0.1);
+}
+
+.grupo-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------------
+   7. Formulário — campos de identificação
+   --------------------------------------------------------------------- */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.campo label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--bone-72);
+}
+
+.campo__rotulo {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--bone-72);
+}
+
+.perfil-opcoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.perfil-opcao {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 72px;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background-color: var(--ash-050);
+  color: var(--bone-72);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.perfil-opcao:hover {
+  border-color: var(--hairline-forte);
+  color: var(--bone-100);
+}
+
+.perfil-opcao[aria-pressed="true"] {
+  border-color: var(--ember-700);
+  background: rgba(255, 107, 26, 0.12);
+  color: var(--ember-300);
+}
+
+.opcao-compacta:disabled {
+  cursor: default;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  background: var(--ash-050);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 16px;
+  color: var(--bone-100);
+  width: 100%;
+}
+
+.campo input::placeholder {
+  color: var(--bone-40);
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  border-color: var(--ember-500);
+}
+
+.campo-erro {
+  border-color: var(--danger) !important;
+}
+
+.mensagem-erro {
+  font-size: 13.5px;
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------------------------
+   8. Escala de resposta (1 a 5) — linhas grandes, não quadradinhos
+   --------------------------------------------------------------------- */
+.pergunta {
+  margin-bottom: 28px;
+}
+
+.pergunta__numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-sm);
+  background: var(--ash-200);
+  color: var(--ember-300);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.pergunta__texto {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--bone-100);
+  margin: 10px 0 16px;
+}
+
+.escala {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.opcao-nota {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+  min-height: 52px;
+}
+
+.opcao-nota:hover {
+  border-color: var(--hairline-forte);
+}
+
+.opcao-nota .num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-forte);
+  color: var(--bone-72);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.opcao-nota .rotulo {
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--bone-72);
+}
+
+.opcao-nota[aria-pressed="true"] {
+  border-color: var(--ember-700);
+  background: rgba(255, 107, 26, 0.12);
+}
+
+.opcao-nota[aria-pressed="true"] .num {
+  background: var(--ember-700);
+  border-color: var(--ember-700);
+  color: var(--ash-000);
+}
+
+.opcao-nota[aria-pressed="true"] .rotulo {
+  color: var(--bone-100);
+}
+
+.pergunta--pendente .opcao-nota {
+  border-color: rgba(224, 101, 107, 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   9. Progresso
+   --------------------------------------------------------------------- */
+.progresso-wrap {
+  margin-bottom: 24px;
+}
+
+.progresso-legenda {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progresso-trilha {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--ash-200);
+  overflow: hidden;
+}
+
+.progresso-barra {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--ember-500), var(--ember-700));
+  transition: width 0.25s ease;
+}
+
+/* ---------------------------------------------------------------------
+   10. Badges / chips
+   --------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* Sem nowrap de propósito: faixas como "Sistema de gestão em estruturação"
+     são compridas — em telas estreitas o texto quebra em vez de vazar do card. */
+  max-width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+.chip--faixa-1 {
+  background: rgba(224, 101, 107, 0.16);
+  color: #ff9c9f;
+}
+.chip--faixa-2 {
+  background: rgba(245, 176, 0, 0.16);
+  color: var(--warning);
+}
+.chip--faixa-3 {
+  background: rgba(255, 179, 92, 0.16);
+  color: var(--ember-300);
+}
+.chip--faixa-4 {
+  background: rgba(255, 107, 26, 0.18);
+  color: var(--ember-300);
+}
+.chip--faixa-5 {
+  background: rgba(91, 214, 149, 0.16);
+  color: var(--success);
+}
+
+.chip--aviso {
+  background: rgba(245, 176, 0, 0.14);
+  color: var(--warning);
+}
+
+/* ---------------------------------------------------------------------
+   11. Alertas / mensagens
+   --------------------------------------------------------------------- */
+.alerta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--bone-40);
+  background: var(--ash-100);
+}
+
+.alerta--aviso {
+  border-left-color: var(--warning);
+}
+
+.alerta--erro {
+  border-left-color: var(--danger);
+}
+
+.alerta--sucesso {
+  border-left-color: var(--success);
+}
+
+.alerta strong {
+  color: var(--bone-100);
+  font-size: 14.5px;
+}
+
+.alerta p {
+  font-size: 14px;
+  color: var(--bone-55);
+}
+
+/* ---------------------------------------------------------------------
+   12. Linhas-card (lista da equipe) — NUNCA tabela crua
+   --------------------------------------------------------------------- */
+.linha-avaliacao {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  background: var(--ash-100);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+
+@media (min-width: 560px) {
+  .linha-avaliacao {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.linha-avaliacao:hover {
+  border-color: var(--hairline-forte);
+}
+
+.linha-avaliacao__principal {
+  min-width: 0;
+  /* Sem flex-basis fixo aqui: no mobile o eixo principal do card é vertical
+     (column), e um flex-basis em px nesse eixo vira ALTURA mínima, não
+     largura — foi o que causava um vão vazio enorme abaixo do nome. O
+     flex-basis de largura só faz sentido no layout em linha (>=560px). */
+  flex: none;
+}
+
+@media (min-width: 560px) {
+  .linha-avaliacao__principal {
+    flex: 1 1 220px;
+  }
+}
+
+.linha-avaliacao__nome {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--bone-100);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.linha-avaliacao__meta {
+  font-size: 13.5px;
+  color: var(--bone-55);
+  margin-top: 4px;
+}
+
+/* No mobile, total e chip dividem a largura inteira do card (nunca vazam pra
+   fora); a partir de 560px voltam a ficar compactos, encostados à direita. */
+.linha-avaliacao__resultado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 560px) {
+  .linha-avaliacao__resultado {
+    justify-content: flex-end;
+    flex: none;
+    width: auto;
+  }
+}
+
+.linha-avaliacao__total {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--bone-100);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.linha-avaliacao__total span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bone-40);
+}
+
+.lista-vazia {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--bone-40);
+}
+
+/* ---------------------------------------------------------------------
+   13. Cartões de dimensão (resultado + detalhe da equipe)
+   --------------------------------------------------------------------- */
+.cartao-dimensao {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--ash-100);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+}
+
+.cartao-dimensao__topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cartao-dimensao__nome {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bone-100);
+  flex: 1;
+}
+
+.cartao-dimensao__pontos {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--bone-100);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cartao-dimensao__pontos span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bone-40);
+}
+
+.cartao-dimensao__media {
+  font-size: 12.5px;
+  color: var(--bone-40);
+  margin-top: auto;
+}
+
+.cartao-dimensao--atencao {
+  border-color: rgba(245, 176, 0, 0.4);
+}
+
+.cartao-dimensao--atencao .cartao-dimensao__media {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* Grade de notas individuais (detalhe da equipe) — chips numerados, não tabela */
+.grade-notas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.nota-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: var(--r-sm);
+  background: var(--ash-050);
+  border: 1px solid var(--hairline);
+}
+
+.nota-chip .n {
+  font-size: 10.5px;
+  color: var(--bone-40);
+}
+
+.nota-chip .v {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--bone-100);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------
+   14. Utilidades
+   --------------------------------------------------------------------- */
+.somente-leitura {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.centro {
+  text-align: center;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+.mt-16 {
+  margin-top: 16px;
+}
+.mt-24 {
+  margin-top: 24px;
+}
+.mt-32 {
+  margin-top: 32px;
+}
+.mb-16 {
+  margin-bottom: 16px;
+}
+.mb-24 {
+  margin-bottom: 24px;
+}
+
+.oculto {
+  display: none !important;
+}
+
+.girar {
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Filtro de busca (área da equipe) */
+.busca {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.busca input {
+  width: 100%;
+  background: var(--ash-100);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 16px;
+  color: var(--bone-100);
+}
+
+/* Checklist simples (marcador quadrado, identidade da Escola) */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--bone-72);
+}
+
+.checklist .marcador {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 4px;
+  border: 1.5px solid var(--ember-300);
+}
+
+/* ---------------------------------------------------------------------
+   15. Pesquisa de Satisfação (pós-evento)
+   Escalas compactas: aqui os rótulos são curtos ("Bom", "Excelente") e a
+   pesquisa promete menos de 1 minuto — então as notas ficam lado a lado,
+   ao contrário da escala em linhas da avaliação pré-escola.
+   --------------------------------------------------------------------- */
+.pergunta__cabecalho {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* Legenda "1 Muito ruim · 2 Ruim · …" no topo do formulário */
+.legenda-escala {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.legenda-escala__item {
+  font-size: 13.5px;
+  color: var(--bone-55);
+}
+
+.legenda-escala__item strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border-radius: var(--r-xs);
+  background: var(--ash-200);
+  color: var(--ember-300);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.escala-compacta {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+/* 0 a 10 são 11 botões: em telas estreitas quebram em duas fileiras de 6. */
+.escala-nps {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 560px) {
+  .escala-nps {
+    grid-template-columns: repeat(11, 1fr);
+  }
+}
+
+.opcao-compacta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 4px;
+  min-height: 64px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.opcao-compacta:hover {
+  border-color: var(--hairline-forte);
+}
+
+.opcao-compacta .num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--bone-72);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.opcao-compacta .rotulo {
+  font-size: 10.5px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--bone-40);
+}
+
+.opcao-compacta[aria-pressed="true"] {
+  border-color: var(--ember-700);
+  background: rgba(255, 107, 26, 0.12);
+}
+
+.opcao-compacta[aria-pressed="true"] .num {
+  color: var(--ember-300);
+}
+
+.opcao-compacta[aria-pressed="true"] .rotulo {
+  color: var(--bone-100);
+}
+
+/* Grupo de notas destacado quando a pessoa tenta avançar sem responder */
+.grupo-pendente .opcao-compacta {
+  border-color: rgba(224, 101, 107, 0.5);
+}
+
+/* Pergunta sozinha na tela: enunciado maior e alvos de toque mais generosos,
+   porque sobra espaço quando é uma pergunta por vez. */
+.pergunta-solo__texto {
+  font-size: clamp(20px, 5.2vw, 27px);
+  line-height: 1.35;
+  color: var(--bone-100);
+  text-wrap: balance;
+}
+
+.escala-solo .opcao-compacta {
+  min-height: 82px;
+  gap: 8px;
+}
+
+.escala-solo .opcao-compacta .num {
+  font-size: 21px;
+}
+
+.escala-solo .opcao-compacta .rotulo {
+  font-size: 11px;
+}
+
+/* "0 · De jeito nenhum" / "10 · Com certeza" embaixo da escala de recomendação */
+.escala-extremos {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--bone-40);
+}
+
+/* --- Painel da equipe: médias por pergunta --- */
+.barra-media {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--ash-200);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.barra-media__preenchimento {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--ember-500), var(--ember-700));
+}
+
+.cartao-dimensao--atencao .barra-media__preenchimento {
+  background: var(--warning);
+}
+
+/* Distribuição de promotores / neutros / detratores */
+.distribuicao {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.distribuicao__item {
+  padding: 14px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  text-align: center;
+}
+
+.distribuicao__valor {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone-100);
+  line-height: 1.1;
+}
+
+.distribuicao__rotulo {
+  margin-top: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bone-40);
+}
+
+/* Distribuição anônima entre donos(as) e gerentes */
+.grafico-perfis {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.grafico-perfis__cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 9px;
+  color: var(--bone-72);
+  font-size: 14px;
+}
+
+.grafico-perfis__cabecalho strong {
+  color: var(--bone-100);
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-perfis__trilha {
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--ash-200);
+}
+
+.grafico-perfis__barra {
+  width: 0;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width 0.25s ease;
+}
+
+.grafico-perfis__barra--dono {
+  background: linear-gradient(90deg, var(--ember-500), var(--ember-700));
+}
+
+.grafico-perfis__barra--gerente {
+  background: linear-gradient(90deg, #3f76c7, #64a0ea);
+}
+
+/* Respostas abertas (pergunta 7) */
+.comentario {
+  border-left: 2px solid var(--ember-700);
+  padding-left: 16px;
+  margin-bottom: 20px;
+}
+
+.comentario__texto {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--bone-100);
+  white-space: pre-wrap;
+}
+
+.comentario__autor {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--bone-40);
+}
+
+/* ---------------------------------------------------------------------
+   16. Votação "Gerente de Resultado"
+   Três telas com o mesmo vocabulário visual: a grade de candidatos (público),
+   a lista de configuração (equipe) e o ranking do telão.
+   --------------------------------------------------------------------- */
+
+/* --- Foto do candidato (imagem ou iniciais coloridas) --- */
+.candidato__foto {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--ash-200);
+  flex: none;
+}
+
+.candidato__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.candidato__foto--iniciais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.candidato__foto--iniciais span {
+  font-size: clamp(28px, 8vw, 44px);
+  font-weight: 700;
+  color: var(--bone-100);
+  letter-spacing: 0.02em;
+}
+
+.candidato__foto--pequena {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-sm);
+}
+.candidato__foto--pequena.candidato__foto--iniciais span {
+  font-size: 18px;
+}
+
+.candidato__foto--media {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-md);
+}
+.candidato__foto--media.candidato__foto--iniciais span {
+  font-size: 30px;
+}
+
+.candidato__foto--grande {
+  width: 132px;
+  height: 132px;
+  border-radius: var(--r-lg);
+}
+.candidato__foto--grande.candidato__foto--iniciais span {
+  font-size: 46px;
+}
+
+/* --- Grade pública de candidatos --- */
+.grade-candidatos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (min-width: 620px) {
+  .grade-candidatos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .grade-candidatos {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.candidato {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.candidato:hover,
+.candidato:focus-visible {
+  border-color: var(--ember-700);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-md);
+}
+
+.candidato:active {
+  transform: translateY(0);
+}
+
+.candidato__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 2px 2px;
+}
+
+.candidato__nome {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--bone-100);
+  line-height: 1.25;
+}
+
+.candidato__empresa {
+  font-size: 12.5px;
+  color: var(--bone-40);
+  line-height: 1.3;
+}
+
+/* --- Sobreposição de confirmação do voto --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--margem-lateral);
+  background: rgba(5, 3, 2, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.overlay__caixa {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--hairline-forte);
+  background: var(--ash-100);
+  box-shadow: var(--sombra-md);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+body.sem-rolagem {
+  overflow: hidden;
+}
+
+.centro-flex {
+  display: flex;
+  justify-content: center;
+}
+
+/* --- Ranking (telão e resultado público) --- */
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking__linha {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+}
+
+.ranking__linha--campeao {
+  border-color: var(--ember-700);
+  background: rgba(255, 107, 26, 0.1);
+  box-shadow: var(--glow-suave);
+}
+
+.ranking__posicao {
+  flex: none;
+  width: 34px;
+  text-align: center;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--bone-40);
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking__linha--campeao .ranking__posicao {
+  color: var(--ember-300);
+}
+
+.ranking__meio {
+  flex: 1;
+  min-width: 0;
+}
+
+.ranking__nome {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bone-100);
+  line-height: 1.2;
+}
+
+.ranking__empresa {
+  font-size: 12.5px;
+  color: var(--bone-40);
+  margin-top: 2px;
+}
+
+.ranking__trilha {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--ash-200);
+  overflow: hidden;
+}
+
+.ranking__barra {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--ember-500), var(--ember-700));
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ranking__numeros {
+  flex: none;
+  text-align: right;
+  min-width: 62px;
+}
+
+.ranking__votos {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--bone-100);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.ranking__pct {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--bone-40);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Telão (projeção) --- */
+.secao--telao {
+  padding-bottom: 40px;
+}
+
+.container--telao {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--margem-lateral);
+}
+
+.telao-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.telao-contador {
+  text-align: right;
+}
+
+.telao-contador .numero-grande {
+  line-height: 1;
+}
+
+.marca-escola--pequena {
+  max-width: 240px;
+}
+
+.ranking--telao .ranking__linha--telao {
+  padding: 16px 18px;
+  gap: 18px;
+}
+
+.ranking--telao .ranking__nome {
+  font-size: clamp(18px, 2.4vw, 26px);
+}
+
+.ranking--telao .ranking__votos {
+  font-size: clamp(28px, 3.6vw, 42px);
+}
+
+.ranking--telao .ranking__posicao {
+  font-size: clamp(20px, 2.6vw, 28px);
+  width: 46px;
+}
+
+.ranking--telao .ranking__trilha {
+  height: 10px;
+}
+
+.pulsar {
+  animation: pulsar 0.5s ease;
+}
+
+@keyframes pulsar {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+    color: var(--ember-300);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chip--pulsante::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: piscar 1.4s ease-in-out infinite;
+}
+
+@keyframes piscar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+body.em-tela-cheia .telao-acoes {
+  opacity: 0.25;
+  transition: opacity 0.2s ease;
+}
+
+body.em-tela-cheia .telao-acoes:hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ranking__barra,
+  .pulsar,
+  .chip--pulsante::before,
+  .candidato {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* --- Painel de configuração --- */
+.cabecalho-painel {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.grupo-estados {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 560px) {
+  .grupo-estados {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.botao-estado {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.botao-estado:hover {
+  border-color: var(--hairline-forte);
+}
+
+.botao-estado__titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bone-72);
+}
+
+.botao-estado__ajuda {
+  font-size: 12px;
+  color: var(--bone-40);
+  line-height: 1.35;
+}
+
+.botao-estado[aria-pressed="true"] {
+  border-color: var(--ember-700);
+  background: rgba(255, 107, 26, 0.12);
+}
+
+.botao-estado[aria-pressed="true"] .botao-estado__titulo {
+  color: var(--bone-100);
+}
+
+.caixa-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--hairline-forte);
+  background: var(--ash-000);
+}
+
+.link-publico {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ember-300);
+  word-break: break-all;
+}
+
+.alternador {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.alternador input {
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--ember-700);
+}
+
+.alternador strong {
+  display: block;
+  font-size: 15px;
+  color: var(--bone-100);
+  font-weight: 600;
+}
+
+.alternador .legenda {
+  display: block;
+  margin-top: 3px;
+}
+
+.previa-foto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.linha-candidato {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--ash-050);
+  flex-wrap: wrap;
+}
+
+.linha-candidato__corpo {
+  flex: 1;
+  min-width: 140px;
+}
+
+.linha-candidato__acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn--curto {
+  width: auto;
+  padding: 9px 16px;
+  font-size: 14px;
+  min-height: 0;
+}
+
+.btn-icone {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--ash-100);
+  color: var(--bone-72);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-icone:hover:not(:disabled) {
+  border-color: var(--hairline-forte);
+  color: var(--bone-100);
+}
+
+.btn-icone:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Aviso flutuante de "salvo" / erro no painel */
+.aviso-flutuante {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100vw - 32px);
+  padding: 13px 20px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline-forte);
+  background: var(--ash-200);
+  color: var(--bone-100);
+  font-size: 14.5px;
+  box-shadow: var(--sombra-md);
+}
+
+.aviso-flutuante--erro {
+  border-color: rgba(224, 101, 107, 0.5);
+  color: #ff9c9f;
+}
+
+.marca-escola--centro {
+  margin-left: auto;
+  margin-right: auto;
+}

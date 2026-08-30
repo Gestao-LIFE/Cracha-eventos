@@ -1,1029 +1,1285 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Painel do Evento — Crachás</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Painel do evento · Gestão Life</title>
+    <meta name="theme-color" content="#0d0805" />
 
-<!-- SheetJS (exportação .xlsx/.csv) — cópia local em libs/ -->
-<script src="libs/xlsx-0.18.5.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Instrument+Serif:ital@1&display=swap"
+      rel="stylesheet"
+    />
 
-<!-- Zebra BrowserPrint SDK (mesmos arquivos do index.html) -->
-<script src="libs/BrowserPrint-3.1.250.min.js" onerror="window.__bpMissing=true"></script>
-<script src="libs/BrowserPrint-Zebra-1.1.250.min.js" onerror="window.__bpMissing=true"></script>
+    <link rel="stylesheet" href="assets/css/estilo.css" />
+    <link rel="stylesheet" href="assets/css/crachas.css" />
 
-<!-- Núcleo compartilhado de layout/ZPL + Supabase + QR -->
-<script src="js/cracha-core.js"></script>
-<script src="libs/supabase-js-2.112.4.min.js"></script>
-<script src="js/supabase-config.js"></script>
-<script src="libs/qrcode-generator-1.4.4.js"></script>
-
-<style>
-  :root{
-    --bg:#f4f6f8; --panel:#ffffff; --ink:#1f2733; --muted:#6b7682;
-    --line:#e3e8ee; --brand:#2f6fed; --brand-d:#1d57c9;
-    --ok:#1f9d55; --ok-bg:#e7f6ee; --err:#d63b3b; --err-bg:#fbe9e9;
-    --warn:#b9770a; --warn-bg:#fdf3e2; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.1);
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-       background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
-
-  header.topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 20px;
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
-  .logo{font-weight:700;font-size:17px;display:flex;align-items:center;gap:9px}
-  .logo .dot{width:14px;height:14px;border-radius:3px;background:var(--brand)}
-  .pills{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .status{display:flex;align-items:center;gap:7px;font-weight:600;padding:5px 11px;border-radius:999px;font-size:12.5px}
-  .status .led{width:9px;height:9px;border-radius:50%}
-  .status.on{background:var(--ok-bg);color:var(--ok)} .status.on .led{background:var(--ok)}
-  .status.off{background:var(--err-bg);color:var(--err)} .status.off .led{background:var(--err)}
-  .status.sim{background:var(--warn-bg);color:var(--warn)} .status.sim .led{background:var(--warn)}
-  #userBox{font-size:12.5px;color:var(--muted)}
-
-  .wrap{max-width:1180px;margin:20px auto;padding:0 20px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
-  .card h2{margin:0 0 4px;font-size:15px}
-  .card .hint{color:var(--muted);font-size:12.5px;margin:0 0 14px}
-
-  label{display:block;font-weight:600;font-size:12.5px;margin:0 0 5px;color:#374150}
-  input[type=text],input[type=number],input[type=email],input[type=password],select{
-    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;
-    font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
-  input:focus,select:focus{outline:2px solid #cfe0ff;border-color:var(--brand)}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .row > div{flex:1;min-width:130px}
-  .campo{margin-bottom:12px}
-  .check{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:#374150;cursor:pointer}
-  .check input{width:16px;height:16px}
-
-  .btn{display:inline-block;padding:9px 14px;border:1px solid var(--line);border-radius:8px;cursor:pointer;
-       background:#fff;color:var(--ink);font-size:13.5px;font-weight:600;font-family:inherit}
-  .btn:hover{border-color:#c8d2de}
-  .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
-  .btn.pri:hover{background:var(--brand-d)}
-  .btn.perigo{color:var(--err)}
-  .btn.mini{padding:5px 9px;font-size:12.5px}
-  .btn[disabled]{opacity:.55;cursor:default}
-
-  .banner{display:none;margin:0 0 14px;padding:11px 14px;border-radius:9px;font-size:13.5px;font-weight:600}
-  .banner.show{display:block}
-  .banner.ok{background:var(--ok-bg);color:var(--ok)}
-  .banner.err{background:var(--err-bg);color:var(--err)}
-  .banner.warn{background:var(--warn-bg);color:var(--warn)}
-  .banner.info{background:#e8effc;color:#2a4a9b}
-
-  /* login */
-  #viewLogin,#viewNegado,#viewCarregando{max-width:420px;margin:60px auto;padding:0 20px}
-
-  /* abas */
-  .tabs{display:flex;gap:6px;margin:0 0 16px;flex-wrap:wrap}
-  .tab{padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;
-       cursor:pointer;font-weight:600;font-size:13.5px;font-family:inherit;color:var(--muted)}
-  .tab.ativa{background:var(--brand);border-color:var(--brand);color:#fff}
-  .tabpane{display:none}
-  .tabpane.ativa{display:block}
-
-  /* tabela */
-  .tabela-scroll{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
-  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
-  td .sub{color:var(--muted);font-size:12px}
-  .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
-  .tag.pend{background:var(--warn-bg);color:var(--warn)}
-  .tag.imp{background:var(--ok-bg);color:var(--ok)}
-  td.acoes{white-space:nowrap}
-  td.acoes .btn{margin-right:5px}
-
-  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
-  .toolbar input[type=text]{max-width:280px}
-  .contador{font-size:12.5px;color:var(--muted);font-weight:600}
-
-  /* modal */
-  #modalFundo{display:none;position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:50;
-              align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
-  #modalFundo.show{display:flex}
-  #modalCaixa{background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.2);
-              padding:20px;width:100%;max-width:520px}
-  #modalCaixa h3{margin:0 0 14px;font-size:16px}
-
-  /* estação */
-  #logEstacao{list-style:none;margin:10px 0 0;padding:0;font-size:12.5px}
-  #logEstacao li{padding:6px 8px;border-bottom:1px solid var(--line)}
-  #logEstacao .ok{color:var(--ok)} #logEstacao .err{color:var(--err)}
-  #previewEstacao{border:1px solid var(--line);border-radius:8px;background:#fff;max-width:100%}
-  .autoBox{border:2px solid var(--line);border-radius:12px;padding:14px;margin-top:6px}
-  .autoBox.ligada{border-color:var(--ok);background:var(--ok-bg)}
-  .num{font-size:26px;font-weight:800}
-
-  /* cartaz */
-  #cartaz{background:#fff;border:1px solid var(--line);border-radius:12px;max-width:560px;margin:0 auto;
-          padding:44px 36px;text-align:center}
-  #cartaz .evNome{font-size:30px;font-weight:800;margin:0 0 6px}
-  #cartaz .chamada{font-size:18px;color:var(--muted);margin:0 0 26px}
-  #cartaz .qrbox{width:78%;max-width:380px;margin:0 auto}
-  #cartaz .qrbox svg{width:100%;height:auto;display:block}
-  #cartaz .url{font-size:15px;color:var(--muted);margin-top:22px;word-break:break-all}
-  #cartaz .passo{font-size:17px;font-weight:700;margin-top:26px}
-
-  @media print{
-    body.imprimindo-cartaz{background:#fff}
-    body.imprimindo-cartaz > *{display:none !important}
-    body.imprimindo-cartaz #cartazPrintWrap{display:block !important;position:static}
-    #cartazPrintWrap #cartaz{border:0;border-radius:0;max-width:none;padding:60px 40px}
-    @page{size:A4 portrait;margin:14mm}
-  }
-
-  @media (max-width:700px){ .toolbar input[type=text]{max-width:none;flex:1} }
-</style>
-</head>
-<body>
-
-<header class="topbar">
-  <div class="logo"><span class="dot"></span>Painel do Evento — Crachás</div>
-  <div class="pills">
-    <span class="status off" id="pillRealtime"><span class="led"></span><span id="pillRealtimeTxt">Tempo real: aguardando login</span></span>
-    <span class="status off" id="pillPrinter"><span class="led"></span><span id="pillPrinterTxt">Impressora: —</span></span>
-    <span id="userBox"></span>
-    <button class="btn mini" id="btnSair" style="display:none">Sair</button>
-  </div>
-</header>
-
-<!-- ===================== carregando ===================== -->
-<div id="viewCarregando"><div class="card"><p style="margin:0;text-align:center;color:var(--muted)">Carregando…</p></div></div>
-
-<!-- ===================== login ===================== -->
-<div id="viewLogin" style="display:none">
-  <div class="card">
-    <h2 id="loginTitulo">Entrar no painel</h2>
-    <p class="hint" id="loginHint">Acesso restrito à equipe do evento.</p>
-    <div class="banner" id="loginBanner"></div>
-    <form id="formLogin">
-      <div class="campo"><label for="l_email">E-mail</label>
-        <input type="email" id="l_email" autocomplete="username" required /></div>
-      <div class="campo"><label for="l_senha">Senha</label>
-        <input type="password" id="l_senha" autocomplete="current-password" required /></div>
-      <button class="btn pri" id="btnLogin" style="width:100%;padding:12px">Entrar</button>
-    </form>
-    <p style="text-align:center;margin:14px 0 0;font-size:13px">
-      <a href="#" id="alternarCadastro">Primeiro acesso? Criar conta</a>
-    </p>
-  </div>
-</div>
-
-<!-- ===================== sem permissão ===================== -->
-<div id="viewNegado" style="display:none">
-  <div class="card">
-    <h2>Conta sem permissão</h2>
-    <p class="hint" style="margin-bottom:14px">
-      Você entrou como <b id="negadoEmail"></b>, mas este e-mail não está na lista de administradores.
-      Peça a um administrador para incluir seu e-mail em <b>Configurações → Administradores</b>.
-    </p>
-    <button class="btn" id="btnSairNegado">Sair</button>
-  </div>
-</div>
-
-<!-- ===================== painel ===================== -->
-<div class="wrap" id="viewMain" style="display:none">
-  <div class="banner" id="banner"></div>
-
-  <div class="tabs">
-    <button class="tab ativa" data-tab="participantes">👥 Participantes</button>
-    <button class="tab" data-tab="estacao">🖨️ Estação de impressão</button>
-    <button class="tab" data-tab="config">⚙️ Configurações</button>
-    <button class="tab" data-tab="cartaz">📱 Cartaz QR</button>
-  </div>
-
-  <!-- ---------- participantes ---------- -->
-  <section class="tabpane ativa" id="pane_participantes">
-    <div class="card">
-      <h2>Inscrições</h2>
-      <p class="hint">Cada resposta do formulário aparece aqui na hora. Você pode cadastrar, editar, excluir, reimprimir e exportar.</p>
-      <div class="toolbar">
-        <input type="text" id="busca" placeholder="Buscar por nome ou empresa…" />
-        <span class="contador" id="contador">0 inscrições</span>
-        <span style="flex:1"></span>
-        <button class="btn pri" id="btnNovo">+ Novo participante</button>
-        <button class="btn" id="btnXlsx">⬇ Planilha (.xlsx)</button>
-        <button class="btn" id="btnCsv">⬇ CSV</button>
+    <!-- Planilhas, impressora Zebra, núcleo do crachá, banco e QR — tudo local -->
+    <script src="libs/xlsx-0.18.5.full.min.js"></script>
+    <script src="libs/BrowserPrint-3.1.250.min.js" onerror="window.__bpMissing=true"></script>
+    <script src="libs/BrowserPrint-Zebra-1.1.250.min.js" onerror="window.__bpMissing=true"></script>
+    <script src="js/cracha-core.js"></script>
+    <script src="libs/supabase-js-2.112.4.min.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="libs/qrcode-generator-1.4.4.js"></script>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 24px; font-family: sans-serif; color: #fff6ed; background: #0d0805">
+        Este painel precisa de JavaScript habilitado no navegador para funcionar.
       </div>
-      <div class="tabela-scroll">
-        <table>
-          <thead><tr>
-            <th>Nome</th><th>Empresa</th><th>Função</th><th>Segmento</th><th>Faturamento</th>
-            <th>Sistema</th><th>Inscrição</th><th>Crachá</th><th>Ações</th>
-          </tr></thead>
-          <tbody id="corpoTabela"></tbody>
-        </table>
-      </div>
+    </noscript>
+
+    <!-- ===================== CARREGANDO ===================== -->
+    <div class="pagina" id="viewCarregando">
+      <section class="secao">
+        <div class="container centro"><p class="corpo mt-32">Carregando…</p></div>
+      </section>
     </div>
-  </section>
 
-  <!-- ---------- estação ---------- -->
-  <section class="tabpane" id="pane_estacao">
-    <div class="row" style="align-items:flex-start">
-      <div style="flex:2;min-width:300px">
-        <div class="card">
-          <h2>Impressão automática</h2>
-          <p class="hint">Deixe esta tela aberta no computador ligado à impressora Zebra. Cada nova inscrição imprime o crachá sozinha (Nome, Empresa e Função).</p>
-          <div class="autoBox" id="autoBox">
-            <label class="check" style="font-size:15px">
-              <input type="checkbox" id="e_auto" /> <span>Impressão automática <b>ativada</b></span>
-            </label>
-            <div class="row" style="margin-top:10px;align-items:center">
-              <div><span class="num" id="numPendentes">0</span> <span class="contador">pendentes</span></div>
-              <div style="flex:0"><button class="btn" id="btnImprimirPendentes">Imprimir pendentes agora</button></div>
+    <!-- ===================== LOGIN ===================== -->
+    <div class="pagina oculto" id="viewLogin">
+      <div class="luz-canto"></div>
+        <div class="grao"></div>
+      <section class="secao conteudo-relativo">
+        <div class="container" style="max-width: 460px">
+          <p class="overline">Gestão Life</p>
+          <h1 class="h1 mt-16" id="loginTitulo">Painel do <span class="acento">evento</span></h1>
+          <p class="corpo mt-16" id="loginHint" style="color: var(--bone-55)">
+            Acesso restrito à equipe.
+          </p>
+
+          <div class="alerta alerta--erro oculto mt-24" id="loginBanner">
+            <strong id="loginBannerTitulo">Atenção</strong>
+            <p id="loginBannerTexto"></p>
+          </div>
+
+          <form class="cartao mt-32" id="formLogin">
+            <div class="campo">
+              <label for="l_email">E-mail</label>
+              <input type="email" id="l_email" autocomplete="username" required />
+            </div>
+            <div class="campo" style="margin-bottom: 0">
+              <label for="l_senha">Senha</label>
+              <input type="password" id="l_senha" autocomplete="current-password" required />
+            </div>
+            <button type="submit" class="btn btn-primario mt-24" id="btnLogin">Entrar</button>
+          </form>
+
+          <p class="centro mt-24">
+            <button type="button" class="btn btn-texto" id="alternarCadastro">
+              Primeiro acesso? Criar conta
+            </button>
+          </p>
+        </div>
+      </section>
+      <footer class="rodape">
+        <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao marca-gestao--rodape" />
+      </footer>
+    </div>
+
+    <!-- ===================== SEM PERMISSÃO ===================== -->
+    <div class="pagina oculto" id="viewNegado">
+      <section class="secao">
+        <div class="container" style="max-width: 520px">
+          <div class="cartao mt-32">
+            <p class="eyebrow">Área restrita</p>
+            <h2 class="h2 mt-16">Esta conta não tem acesso</h2>
+            <p class="corpo mt-16" style="color: var(--bone-55)">
+              Você entrou como <strong style="color: var(--bone-100)" id="negadoEmail"></strong>, mas
+              este e-mail não está na lista de administradores. Peça a quem administra o evento para
+              adicioná-lo em <strong style="color: var(--bone-100)">Configurações → Administradores</strong>.
+            </p>
+            <button type="button" class="btn btn-secundario mt-24" id="btnSairNegado" style="width: auto">
+              Sair
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== PAINEL ===================== -->
+    <div class="pagina oculto" id="viewMain">
+      <header class="topo-fixo">
+        <div class="topo-fixo__interno">
+          <div class="topo-fixo__marca">
+            <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao" />
+          </div>
+          <div class="topo-fixo__acoes">
+            <span class="pilula" id="pillRealtime">
+              <span class="pilula__led"></span><span id="pillRealtimeTxt">Conectando…</span>
+            </span>
+            <span class="pilula" id="pillPrinter">
+              <span class="pilula__led"></span><span id="pillPrinterTxt">Impressora: —</span>
+            </span>
+            <span class="legenda" id="userBox"></span>
+            <button type="button" class="btn btn-texto btn--curto" id="btnSair">Sair</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="secao">
+        <div class="container container--painel">
+          <p class="overline">Credenciamento</p>
+          <h1 class="h1 mt-16" id="tituloPainel">Painel do <span class="acento">evento</span></h1>
+
+          <nav class="abas mt-24" role="tablist">
+            <button class="aba" role="tab" data-aba="participantes" aria-selected="true">Participantes</button>
+            <button class="aba" role="tab" data-aba="estacao" aria-selected="false">Estação de impressão</button>
+            <button class="aba" role="tab" data-aba="cartaz" aria-selected="false">Cartaz QR</button>
+            <button class="aba" role="tab" data-aba="config" aria-selected="false">Configurações</button>
+          </nav>
+
+          <!-- ---------- PARTICIPANTES ---------- -->
+          <div class="mt-24" id="pane_participantes">
+            <div class="grade grade--3">
+              <div class="cartao-dimensao">
+                <div class="cartao-dimensao__topo">
+                  <span class="cartao-dimensao__nome">Inscritos</span>
+                  <span class="cartao-dimensao__pontos" id="totalInscritos">0</span>
+                </div>
+              </div>
+              <div class="cartao-dimensao">
+                <div class="cartao-dimensao__topo">
+                  <span class="cartao-dimensao__nome">Crachás impressos</span>
+                  <span class="cartao-dimensao__pontos" id="totalImpressos">0</span>
+                </div>
+              </div>
+              <div class="cartao-dimensao">
+                <div class="cartao-dimensao__topo">
+                  <span class="cartao-dimensao__nome">Na fila</span>
+                  <span class="cartao-dimensao__pontos" id="totalPendentes">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="barra-ferramentas mt-24">
+              <div class="busca">
+                <input type="text" id="busca" placeholder="Buscar por nome ou empresa…" />
+              </div>
+              <button type="button" class="btn btn-primario btn--curto" id="btnNovo">+ Participante</button>
+              <button type="button" class="btn btn-secundario btn--curto" id="btnXlsx">Planilha .xlsx</button>
+              <button type="button" class="btn btn-secundario btn--curto" id="btnCsv">CSV</button>
+            </div>
+
+            <p class="contagem mt-16" id="contador">0 inscrições</p>
+            <div class="lista-participantes mt-16" id="listaParticipantes"></div>
+            <div class="lista-vazia oculto" id="listaVazia">
+              <p class="corpo">Nenhuma inscrição ainda.</p>
+              <p class="corpo-sm mt-8">Assim que alguém ler o QR Code do cartaz, aparece aqui na hora.</p>
             </div>
           </div>
-          <div class="banner" id="bannerEstacao"></div>
-          <button class="btn pri" id="btnRetomar" style="display:none">▶ Retomar impressão</button>
-          <h2 style="margin-top:18px">Últimas impressões</h2>
-          <ul id="logEstacao"></ul>
-        </div>
-      </div>
 
-      <div style="flex:1.4;min-width:280px">
-        <div class="card">
-          <h2>Impressora</h2>
-          <p class="hint">Requer o Zebra Browser Print aberto neste computador.</p>
-          <div class="campo"><label for="printerSelect">Impressora</label><select id="printerSelect"></select></div>
-          <div class="row">
-            <div><button class="btn" id="btnReconectar">↻ Reconectar</button></div>
-            <div><button class="btn" id="btnTeste">Testar impressora</button></div>
+          <!-- ---------- ESTAÇÃO ---------- -->
+          <div class="mt-24 oculto" id="pane_estacao">
+            <div class="grade--estacao">
+              <div class="cartao cartao-altura-total">
+                <p class="eyebrow">Impressão automática</p>
+                <p class="corpo mt-16" style="color: var(--bone-55)">
+                  Deixe esta tela aberta no computador ligado à Zebra. Cada inscrição nova imprime o
+                  crachá sozinha, com nome, empresa e função.
+                </p>
+
+                <div class="caixa-auto mt-24" id="caixaAuto">
+                  <label class="alternador" style="margin-top: 0">
+                    <input type="checkbox" id="e_auto" />
+                    <span>
+                      <strong>Impressão automática ligada</strong>
+                      <span class="legenda">Ao ligar, imprime também quem já está na fila.</span>
+                    </span>
+                  </label>
+                  <div class="grupo-botoes mt-24">
+                    <span class="numero-grande" style="font-size: 40px" id="numPendentes">0</span>
+                    <span class="corpo-sm">na fila</span>
+                    <span style="flex: 1"></span>
+                    <button type="button" class="btn btn-secundario btn--curto" id="btnImprimirPendentes">
+                      Imprimir a fila agora
+                    </button>
+                  </div>
+                </div>
+
+                <div class="alerta alerta--erro oculto mt-24" id="bannerEstacao">
+                  <strong id="bannerEstacaoTitulo">Impressão pausada</strong>
+                  <p id="bannerEstacaoTexto"></p>
+                </div>
+                <button type="button" class="btn btn-primario mt-16 oculto" id="btnRetomar" style="width: auto">
+                  Retomar impressão
+                </button>
+
+                <hr class="divisor" />
+                <p class="eyebrow mb-16">Últimos crachás</p>
+                <div class="registro" id="registro">
+                  <p class="corpo-sm" id="registroVazio">Nada impresso ainda nesta sessão.</p>
+                </div>
+              </div>
+
+              <div>
+                <div class="cartao">
+                  <p class="eyebrow">Impressora</p>
+                  <p class="corpo-sm mt-8">Precisa do Zebra Browser Print aberto neste computador.</p>
+                  <div class="campo mt-16">
+                    <label for="printerSelect">Impressora conectada</label>
+                    <select id="printerSelect"></select>
+                  </div>
+                  <div class="grupo-botoes">
+                    <button type="button" class="btn btn-secundario btn--curto" id="btnReconectar">Reconectar</button>
+                    <button type="button" class="btn btn-secundario btn--curto" id="btnTeste">Testar</button>
+                  </div>
+                  <label class="alternador">
+                    <input type="checkbox" id="e_sim" />
+                    <span>
+                      <strong>Modo simulação</strong>
+                      <span class="legenda">Gera o crachá sem imprimir. Para testar sem papel.</span>
+                    </span>
+                  </label>
+                  <div class="alerta alerta--aviso oculto mt-16" id="bannerBP">
+                    <strong id="bannerBPTitulo">Aviso</strong>
+                    <p id="bannerBPTexto"></p>
+                  </div>
+                </div>
+
+                <div class="cartao mt-16">
+                  <p class="eyebrow mb-16">Etiqueta</p>
+                  <div class="grade grade--2">
+                    <div class="campo" style="margin-bottom: 0">
+                      <label for="e_w">Largura (mm)</label>
+                      <input type="number" id="e_w" min="20" max="120" />
+                    </div>
+                    <div class="campo" style="margin-bottom: 0">
+                      <label for="e_h">Altura (mm)</label>
+                      <input type="number" id="e_h" min="15" max="120" />
+                    </div>
+                  </div>
+                  <label class="alternador">
+                    <input type="checkbox" id="e_dark" />
+                    <span><strong>Fundo preto</strong>
+                      <span class="legenda">Crachá com letras brancas em fundo preto.</span></span>
+                  </label>
+                  <label class="alternador">
+                    <input type="checkbox" id="e_border" />
+                    <span><strong>Borda</strong>
+                      <span class="legenda">Moldura fina em volta do crachá.</span></span>
+                  </label>
+                  <p class="legenda mt-24 mb-16">Prévia do último crachá</p>
+                  <canvas id="previaCracha" class="previa-cracha" width="372" height="140"></canvas>
+                </div>
+              </div>
+            </div>
           </div>
-          <label class="check" style="margin-top:10px"><input type="checkbox" id="e_sim" /> Modo simulação (não imprime)</label>
-          <div class="banner" id="bannerBP" style="margin-top:10px"></div>
+
+          <!-- ---------- CARTAZ ---------- -->
+          <div class="mt-24 oculto" id="pane_cartaz">
+            <div class="cartao">
+              <p class="eyebrow">Cartaz do evento</p>
+              <p class="corpo mt-16" style="color: var(--bone-55)">
+                Imprima em A4 e deixe na recepção. O código abre a inscrição no celular do participante
+                e usa o nome e a cidade definidos em <strong style="color: var(--bone-100)">Configurações</strong>.
+              </p>
+              <div class="grupo-botoes mt-24">
+                <button type="button" class="btn btn-primario btn--curto" id="btnImprimirCartaz">
+                  Imprimir cartaz A4
+                </button>
+                <label class="alternador" style="margin-top: 0">
+                  <input type="checkbox" id="cartazClaro" />
+                  <span>
+                    <strong>Fundo claro</strong>
+                    <span class="legenda">Para impressora comum: economiza muita tinta.</span>
+                  </span>
+                </label>
+              </div>
+              <div class="caixa-link mt-24">
+                <div style="min-width: 0">
+                  <p class="legenda">Endereço que o QR Code abre</p>
+                  <p class="link-publico" id="cartazUrl">…</p>
+                </div>
+                <button type="button" class="btn btn-secundario btn--curto" id="btnCopiarLink">Copiar</button>
+              </div>
+            </div>
+
+            <div class="mt-24" id="areaCartaz">
+              <div class="cartaz" id="cartaz">
+                <div class="luz-canto"></div>
+        <div class="grao"></div>
+                <div class="cartaz__conteudo">
+                  <div>
+                    <p class="overline">Realização · Gestão Life</p>
+                    <p class="cartaz__evento mt-8" id="cartazEvento">Evento</p>
+                    <p class="cartaz__cidade mt-8" id="cartazCidade"></p>
+                  </div>
+
+                  <div class="cartaz__qr" id="qrBox"></div>
+
+                  <div class="cartaz__rodape">
+                    <p class="cartaz__chamada">Aponte a câmera do celular para o código</p>
+                    <p class="cartaz__passos">
+                      Faça sua inscrição em 30 segundos<br />e retire seu crachá aqui na recepção.
+                    </p>
+                    <p class="cartaz__url" id="cartazUrlImpresso"></p>
+                    <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life"
+                         class="marca-gestao marca-gestao--cartaz" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------- CONFIGURAÇÕES ---------- -->
+          <div class="mt-24 oculto" id="pane_config">
+            <div class="grade grade--2">
+              <form class="cartao cartao-altura-total" id="formConfig">
+                <p class="eyebrow mb-16">Identidade do evento</p>
+                <div class="campo">
+                  <label for="cfg_nome">Nome do evento</label>
+                  <input type="text" id="cfg_nome" maxlength="80" placeholder="Ex.: Encontro de Donos" />
+                </div>
+                <div class="campo">
+                  <label for="cfg_cidade">Cidade</label>
+                  <input type="text" id="cfg_cidade" maxlength="60" placeholder="Ex.: Belo Horizonte · MG" />
+                  <span class="legenda">Aparece no cartaz do QR Code e na tela de inscrição.</span>
+                </div>
+                <div class="campo">
+                  <label for="cfg_zap">Link do grupo do WhatsApp</label>
+                  <input type="text" id="cfg_zap" placeholder="https://chat.whatsapp.com/…" />
+                  <span class="legenda">Vira o botão na confirmação. Deixe vazio para ocultar.</span>
+                </div>
+                <div class="campo">
+                  <label for="cfg_msg">Mensagem de confirmação</label>
+                  <input type="text" id="cfg_msg" maxlength="160" />
+                </div>
+                <button type="submit" class="btn btn-primario" id="btnSalvarCfg" style="width: auto">
+                  Salvar
+                </button>
+              </form>
+
+              <div>
+                <div class="cartao">
+                  <p class="eyebrow mb-16">Administradores</p>
+                  <p class="corpo-sm">
+                    Quem pode abrir este painel. A pessoa ainda precisa criar a conta na tela de login.
+                  </p>
+                  <div class="mt-16" id="listaAdmins" style="display: flex; flex-direction: column; gap: 10px"></div>
+                  <div class="campo mt-16" style="margin-bottom: 0">
+                    <label for="novoAdmin">Adicionar e-mail</label>
+                    <input type="email" id="novoAdmin" placeholder="pessoa@exemplo.com" />
+                  </div>
+                  <button type="button" class="btn btn-secundario btn--curto mt-16" id="btnAddAdmin">
+                    Adicionar
+                  </button>
+                </div>
+
+                <div class="cartao mt-16">
+                  <p class="eyebrow mb-16">Minha senha</p>
+                  <div class="campo" style="margin-bottom: 0">
+                    <label for="novaSenha">Nova senha</label>
+                    <input type="password" id="novaSenha" autocomplete="new-password" />
+                  </div>
+                  <button type="button" class="btn btn-secundario btn--curto mt-16" id="btnTrocarSenha">
+                    Alterar senha
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <h2>Etiqueta</h2>
-          <div class="row">
-            <div class="campo"><label for="e_w">Largura (mm)</label><input type="number" id="e_w" min="20" max="120" /></div>
-            <div class="campo"><label for="e_h">Altura (mm)</label><input type="number" id="e_h" min="15" max="120" /></div>
-          </div>
-          <div class="row" style="margin-bottom:10px">
-            <label class="check"><input type="checkbox" id="e_dark" /> Fundo preto</label>
-            <label class="check"><input type="checkbox" id="e_border" /> Borda</label>
-          </div>
-          <canvas id="previewEstacao" width="372" height="140"></canvas>
-          <p class="hint" style="margin:8px 0 0">Prévia com o último crachá impresso (ou um exemplo).</p>
+      </section>
+
+      <footer class="rodape">
+        <img src="assets/img/logo-gestao-life.svg" alt="Gestão Life" class="marca-gestao marca-gestao--rodape" />
+      </footer>
+    </div>
+
+    <!-- ===================== MODAL PARTICIPANTE ===================== -->
+    <div class="overlay oculto" id="modalFundo">
+      <div class="overlay__caixa">
+        <p class="eyebrow" id="modalTitulo">Novo participante</p>
+
+        <div class="alerta alerta--erro oculto mt-16" id="modalBanner">
+          <strong>Confira os dados</strong>
+          <p id="modalBannerTexto"></p>
         </div>
+
+        <form class="mt-24" id="formParticipante">
+          <div class="campo">
+            <label for="m_nome">Nome completo</label>
+            <input type="text" id="m_nome" maxlength="120" />
+          </div>
+          <div class="campo">
+            <label for="m_empresa">Empresa</label>
+            <input type="text" id="m_empresa" maxlength="120" />
+          </div>
+          <div class="campo">
+            <label for="m_funcao">Função</label>
+            <select id="m_funcao"></select>
+          </div>
+          <div class="campo oculto" id="m_funcao_outro_box">
+            <label for="m_funcao_outro">Qual função?</label>
+            <input type="text" id="m_funcao_outro" maxlength="60" />
+          </div>
+          <div class="campo">
+            <label for="m_segmento">Segmento</label>
+            <select id="m_segmento"></select>
+          </div>
+          <div class="campo">
+            <label for="m_faturamento">Faturamento mensal</label>
+            <select id="m_faturamento"></select>
+          </div>
+          <div class="campo">
+            <label for="m_sistema">Sistema que utiliza</label>
+            <input type="text" id="m_sistema" maxlength="80" />
+          </div>
+          <div class="grupo-botoes" style="justify-content: flex-end">
+            <button type="button" class="btn btn-texto btn--curto" id="btnModalCancelar">Cancelar</button>
+            <button type="submit" class="btn btn-primario btn--curto" id="btnModalSalvar">Salvar</button>
+          </div>
+        </form>
       </div>
     </div>
-  </section>
 
-  <!-- ---------- configurações ---------- -->
-  <section class="tabpane" id="pane_config">
-    <div class="row" style="align-items:flex-start">
-      <div style="flex:1.6;min-width:300px">
-        <div class="card">
-          <h2>Evento</h2>
-          <p class="hint">Estes textos aparecem na página de inscrição do participante.</p>
-          <div class="campo"><label for="cfg_nome">Nome do evento</label><input type="text" id="cfg_nome" maxlength="80" /></div>
-          <div class="campo"><label for="cfg_zap">Link do grupo do WhatsApp</label>
-            <input type="text" id="cfg_zap" placeholder="https://chat.whatsapp.com/…" />
-            <p class="hint" style="margin:5px 0 0">Aparece como botão verde na confirmação. Deixe vazio para ocultar.</p></div>
-          <div class="campo"><label for="cfg_msg">Mensagem de confirmação</label><input type="text" id="cfg_msg" maxlength="160" /></div>
-          <button class="btn pri" id="btnSalvarCfg">Salvar configurações</button>
-        </div>
-        <div class="card">
-          <h2>Administradores</h2>
-          <p class="hint">E-mails com acesso a este painel (a pessoa também precisa criar a conta na tela de login).</p>
-          <ul id="listaAdmins" style="list-style:none;margin:0 0 12px;padding:0"></ul>
-          <div class="row">
-            <div><input type="email" id="novoAdmin" placeholder="email@exemplo.com" /></div>
-            <div style="flex:0"><button class="btn" id="btnAddAdmin">Adicionar</button></div>
-          </div>
-        </div>
-      </div>
-      <div style="flex:1;min-width:260px">
-        <div class="card">
-          <h2>Minha conta</h2>
-          <div class="campo"><label for="novaSenha">Nova senha</label><input type="password" id="novaSenha" autocomplete="new-password" /></div>
-          <button class="btn" id="btnTrocarSenha">Alterar senha</button>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- área usada só na impressão do cartaz -->
+    <div id="area-impressao" style="display: none"></div>
 
-  <!-- ---------- cartaz ---------- -->
-  <section class="tabpane" id="pane_cartaz">
-    <div class="card" style="text-align:center">
-      <h2>Cartaz com QR Code</h2>
-      <p class="hint">Imprima em A4 e deixe na recepção. O código abre a página de inscrição no celular do participante.</p>
-      <button class="btn pri" id="btnImprimirCartaz">🖨 Imprimir cartaz (A4)</button>
-    </div>
-    <div id="cartaz">
-      <p class="evNome" id="cartazEvento">Evento</p>
-      <p class="chamada">Faça sua inscrição e retire seu crachá</p>
-      <div class="qrbox" id="qrBox"></div>
-      <p class="passo">📱 Aponte a câmera do celular para o código</p>
-      <p class="url" id="cartazUrl"></p>
-    </div>
-  </section>
-</div>
+    <script>
+      (function () {
+        'use strict';
+        const $ = (id) => document.getElementById(id);
+        const C = CrachaCore;
+        const ESTACAO_KEY = 'cracha-estacao-config-v1';
+        const norm = (s) =>
+          String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+        const esc = (s) =>
+          String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+          );
+        const mostrar = (el, visivel) =>
+          (typeof el === 'string' ? $(el) : el).classList.toggle('oculto', !visivel);
+        const fmtData = (ts) =>
+          ts
+            ? new Date(ts).toLocaleString('pt-BR', {
+                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+              })
+            : '';
 
-<!-- wrapper exclusivo para impressão do cartaz -->
-<div id="cartazPrintWrap" style="display:none"></div>
+        /* ============================ estado ============================ */
+        let sb = null;
+        let sessao = null;
+        let participantes = new Map();
+        let canalRealtime = null;
+        let pollTimer = null;
 
-<!-- ===================== modal participante ===================== -->
-<div id="modalFundo">
-  <div id="modalCaixa">
-    <h3 id="modalTitulo">Novo participante</h3>
-    <div class="banner" id="modalBanner"></div>
-    <form id="formParticipante">
-      <div class="campo"><label for="m_nome">Nome completo *</label><input type="text" id="m_nome" maxlength="120" /></div>
-      <div class="campo"><label for="m_empresa">Empresa *</label><input type="text" id="m_empresa" maxlength="120" /></div>
-      <div class="row">
-        <div class="campo"><label for="m_funcao">Função *</label><select id="m_funcao"></select></div>
-        <div class="campo" id="m_funcao_outro_box" style="display:none">
-          <label for="m_funcao_outro">Qual função? *</label><input type="text" id="m_funcao_outro" maxlength="60" /></div>
-      </div>
-      <div class="row">
-        <div class="campo"><label for="m_faturamento">Faturamento mensal</label><select id="m_faturamento"></select></div>
-        <div class="campo"><label for="m_segmento">Segmento</label><select id="m_segmento"></select></div>
-      </div>
-      <div class="campo"><label for="m_sistema">Sistema que utiliza</label><input type="text" id="m_sistema" maxlength="80" /></div>
-      <div class="row" style="justify-content:flex-end;margin-top:6px">
-        <div style="flex:0"><button type="button" class="btn" id="btnModalCancelar">Cancelar</button></div>
-        <div style="flex:0"><button type="submit" class="btn pri" id="btnModalSalvar">Salvar</button></div>
-      </div>
-    </form>
-  </div>
-</div>
+        let cfgEst = {
+          widthMm: 80, heightMm: 30, dark: false, border: false,
+          simulate: false, printerName: null, auto: false,
+        };
+        let fila = [];
+        let processando = false;
+        let pausadaPorErro = false;
+        let ultimoImpresso = null;
+        let editandoId = null;
 
-<script>
-(function(){
-'use strict';
-const $ = id => document.getElementById(id);
-const C = CrachaCore;
-const ESTACAO_KEY = 'cracha-estacao-config-v1';
-const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-const fmtData = ts => ts ? new Date(ts).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        let selectedDevice = null;
+        let deviceList = [];
 
-/* ============================ estado ============================ */
-let sb = null;
-let sessao = null;
-let participantes = new Map();          // id -> linha do banco
-let canalRealtime = null;
-let pollTimer = null;
+        /* ============================ avisos ============================ */
+        let avisoTimer = null;
+        function aviso(texto, erro) {
+          let el = document.querySelector('.aviso-flutuante');
+          if (!el) {
+            el = document.createElement('div');
+            document.body.appendChild(el);
+          }
+          el.className = 'aviso-flutuante' + (erro ? ' aviso-flutuante--erro' : '');
+          el.textContent = texto;
+          clearTimeout(avisoTimer);
+          avisoTimer = setTimeout(() => el.remove(), 5000);
+        }
+        function alerta(id, titulo, texto, visivel) {
+          const box = $(id);
+          if (titulo != null && $(id + 'Titulo')) $(id + 'Titulo').textContent = titulo;
+          if (texto != null && $(id + 'Texto')) $(id + 'Texto').textContent = texto;
+          mostrar(box, visivel !== false);
+        }
 
-let cfgEst = { widthMm:80, heightMm:30, dark:false, border:false, simulate:false, printerName:null, auto:false };
-let fila = [];                          // ids aguardando impressão
-let processando = false;
-let pausadaPorErro = false;
-let ultimoImpresso = null;              // dados p/ prévia
-let editandoId = null;
+        function mostrarView(qual) {
+          ['viewCarregando', 'viewLogin', 'viewNegado', 'viewMain'].forEach((v) =>
+            mostrar(v, v === qual)
+          );
+        }
 
-let selectedDevice = null;
-let deviceList = [];
+        /* ============================ abas ============================ */
+        document.querySelectorAll('.aba').forEach((aba) =>
+          aba.addEventListener('click', () => {
+            document.querySelectorAll('.aba').forEach((x) =>
+              x.setAttribute('aria-selected', String(x === aba))
+            );
+            ['participantes', 'estacao', 'cartaz', 'config'].forEach((nome) =>
+              mostrar('pane_' + nome, nome === aba.dataset.aba)
+            );
+            if (aba.dataset.aba === 'cartaz') montarCartaz();
+          })
+        );
 
-/* ============================ ui básica ============================ */
-function banner(el, msg, tipo, fixo){
-  const b = typeof el === 'string' ? $(el) : el;
-  b.className = 'banner show ' + (tipo || 'info');
-  b.innerHTML = msg;
-  if(b._t) clearTimeout(b._t);
-  if(!fixo) b._t = setTimeout(() => { b.className = 'banner'; }, 6000);
-}
-function fecharBanner(el){ const b = $(el); b.className = 'banner'; }
+        /* ============================ selects ============================ */
+        function montarSelect(sel, opcoes) {
+          sel.innerHTML = '';
+          const vazio = document.createElement('option');
+          vazio.value = '';
+          vazio.textContent = '—';
+          sel.appendChild(vazio);
+          opcoes.forEach((v) => {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = v;
+            sel.appendChild(o);
+          });
+        }
+        montarSelect($('m_funcao'), CRACHA_OPCOES.funcao);
+        montarSelect($('m_faturamento'), CRACHA_OPCOES.faturamento);
+        montarSelect($('m_segmento'), CRACHA_OPCOES.segmento);
+        $('m_funcao').addEventListener('change', () =>
+          mostrar('m_funcao_outro_box', $('m_funcao').value === 'Outro')
+        );
 
-function mostrarView(qual){
-  ['viewCarregando','viewLogin','viewNegado','viewMain'].forEach(v => {
-    $(v).style.display = (v === qual) ? '' : 'none';
-  });
-}
+        /* ============================ autenticação ============================ */
+        function initSupabase() {
+          try {
+            sb = CRACHA_SUPABASE.client();
+          } catch (e) {
+            mostrarView('viewLogin');
+            alerta('loginBanner', 'Sem conexão', 'Não foi possível carregar a conexão com o banco: ' + e.message);
+            return;
+          }
+          sb.auth.onAuthStateChange((_ev, s) => tratarSessao(s));
+          sb.auth.getSession().then(({ data }) => tratarSessao(data ? data.session : null));
+        }
 
-/* abas */
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('ativa', x === t));
-  document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('ativa', p.id === 'pane_' + t.dataset.tab));
-  if(t.dataset.tab === 'cartaz') montarCartaz();
-}));
+        let entrouNoPainel = false;
+        async function tratarSessao(s) {
+          sessao = s;
+          if (!s) {
+            entrouNoPainel = false;
+            pararRealtime();
+            mostrarView('viewLogin');
+            return;
+          }
+          if (entrouNoPainel) return;
+          mostrarView('viewCarregando');
+          const { data: souAdmin, error } = await sb.rpc('cracha_is_admin');
+          if (error) {
+            mostrarView('viewLogin');
+            alerta('loginBanner', 'Erro ao entrar', 'Não deu para verificar a permissão: ' + error.message);
+            return;
+          }
+          if (!souAdmin) {
+            $('negadoEmail').textContent = s.user.email;
+            mostrarView('viewNegado');
+            return;
+          }
+          entrouNoPainel = true;
+          $('userBox').textContent = s.user.email;
+          mostrarView('viewMain');
+          await entrarNoPainel();
+        }
 
-/* selects compartilhados */
-function preencherSelect(sel, opcoes, comVazio){
-  sel.innerHTML = '';
-  if(comVazio){ const o = document.createElement('option'); o.value=''; o.textContent='—'; sel.appendChild(o); }
-  opcoes.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
-}
-preencherSelect($('m_funcao'), CRACHA_OPCOES.funcao, true);
-preencherSelect($('m_faturamento'), CRACHA_OPCOES.faturamento, true);
-preencherSelect($('m_segmento'), CRACHA_OPCOES.segmento, true);
-$('m_funcao').addEventListener('change', () => {
-  $('m_funcao_outro_box').style.display = $('m_funcao').value === 'Outro' ? '' : 'none';
-});
+        $('formLogin').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const email = $('l_email').value.trim();
+          const senha = $('l_senha').value;
+          if (!email || !senha) return;
+          $('btnLogin').disabled = true;
+          const modoCadastro = $('formLogin').dataset.modo === 'cadastro';
+          try {
+            if (modoCadastro) {
+              const { error } = await sb.auth.signUp({
+                email, password: senha,
+                options: { emailRedirectTo: new URL('admin.html', location.href).href },
+              });
+              if (error) throw error;
+              alerta('loginBanner', 'Conta criada',
+                'Se chegar um e-mail de confirmação, clique no link antes de entrar. O e-mail também precisa estar na lista de administradores.');
+              $('loginBanner').className = 'alerta alerta--sucesso mt-24';
+            } else {
+              const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+              if (error) throw error;
+            }
+          } catch (e) {
+            const m = /invalid login credentials/i.test(e.message)
+              ? 'E-mail ou senha incorretos.'
+              : e.message;
+            $('loginBanner').className = 'alerta alerta--erro mt-24';
+            alerta('loginBanner', 'Não foi possível entrar', m);
+          }
+          $('btnLogin').disabled = false;
+        });
 
-/* ============================ autenticação ============================ */
-function initSupabase(){
-  try{ sb = CRACHA_SUPABASE.client(); }
-  catch(e){
-    mostrarView('viewLogin');
-    banner('loginBanner', 'Não foi possível carregar a conexão com o banco: ' + esc(e.message), 'err', true);
-    return false;
-  }
-  sb.auth.onAuthStateChange((_ev, s) => { tratarSessao(s); });
-  sb.auth.getSession().then(({ data }) => tratarSessao(data ? data.session : null));
-  return true;
-}
+        $('alternarCadastro').addEventListener('click', () => {
+          const f = $('formLogin');
+          const cadastro = f.dataset.modo !== 'cadastro';
+          f.dataset.modo = cadastro ? 'cadastro' : '';
+          $('loginTitulo').innerHTML = cadastro
+            ? 'Criar <span class="acento">conta</span>'
+            : 'Painel do <span class="acento">evento</span>';
+          $('loginHint').textContent = cadastro
+            ? 'Crie a conta com o e-mail já autorizado pela equipe.'
+            : 'Acesso restrito à equipe.';
+          $('btnLogin').textContent = cadastro ? 'Criar conta' : 'Entrar';
+          $('alternarCadastro').textContent = cadastro ? '← Já tenho conta' : 'Primeiro acesso? Criar conta';
+          $('l_senha').autocomplete = cadastro ? 'new-password' : 'current-password';
+        });
 
-let entrouNoPainel = false;
-async function tratarSessao(s){
-  sessao = s;
-  if(!s){
-    entrouNoPainel = false;
-    pararRealtime();
-    $('btnSair').style.display = 'none';
-    $('userBox').textContent = '';
-    mostrarView('viewLogin');
-    return;
-  }
-  if(entrouNoPainel) return;                    // já dentro (refresh de token etc.)
-  mostrarView('viewCarregando');
-  const { data: souAdmin, error } = await sb.rpc('cracha_is_admin');
-  if(error){
-    mostrarView('viewLogin');
-    banner('loginBanner', 'Erro ao verificar permissão: ' + esc(error.message), 'err', true);
-    return;
-  }
-  if(!souAdmin){
-    $('negadoEmail').textContent = s.user.email;
-    mostrarView('viewNegado');
-    return;
-  }
-  entrouNoPainel = true;
-  $('userBox').textContent = s.user.email;
-  $('btnSair').style.display = '';
-  mostrarView('viewMain');
-  await entrarNoPainel();
-}
+        const sair = () => sb.auth.signOut();
+        $('btnSair').addEventListener('click', sair);
+        $('btnSairNegado').addEventListener('click', sair);
 
-$('formLogin').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const email = $('l_email').value.trim(), senha = $('l_senha').value;
-  if(!email || !senha) return;
-  $('btnLogin').disabled = true;
-  const modoCadastro = $('formLogin').dataset.modo === 'cadastro';
-  try{
-    if(modoCadastro){
-      const { error } = await sb.auth.signUp({ email, password: senha,
-        options: { emailRedirectTo: new URL('admin.html', location.href).href } });
-      if(error) throw error;
-      banner('loginBanner', 'Conta criada! Se chegar um e-mail de confirmação, clique no link antes de entrar. O e-mail também precisa estar na lista de administradores.', 'ok', true);
-    } else {
-      const { error } = await sb.auth.signInWithPassword({ email, password: senha });
-      if(error) throw error;
-    }
-  }catch(e){
-    const m = /invalid login credentials/i.test(e.message) ? 'E-mail ou senha incorretos.' : e.message;
-    banner('loginBanner', esc(m), 'err', true);
-  }
-  $('btnLogin').disabled = false;
-});
+        /* ============================ entrada ============================ */
+        async function entrarNoPainel() {
+          carregarCfgEstacao();
+          await Promise.all([carregarParticipantes(), carregarConfigEvento(), carregarAdmins()]);
+          ligarRealtime();
+          conectarImpressora();
+          atualizarPrevia();
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = setInterval(() => { if (!document.hidden) sincronizar(); }, 60000);
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && entrouNoPainel) sincronizar();
+          });
+          if (cfgEst.auto) { $('e_auto').checked = true; refletirAuto(); carregarPendentes(); }
+        }
 
-$('alternarCadastro').addEventListener('click', ev => {
-  ev.preventDefault();
-  const f = $('formLogin');
-  const cadastro = f.dataset.modo !== 'cadastro';
-  f.dataset.modo = cadastro ? 'cadastro' : '';
-  $('loginTitulo').textContent = cadastro ? 'Criar conta' : 'Entrar no painel';
-  $('loginHint').textContent = cadastro
-    ? 'Crie a conta com o e-mail já autorizado pelo administrador.'
-    : 'Acesso restrito à equipe do evento.';
-  $('btnLogin').textContent = cadastro ? 'Criar conta' : 'Entrar';
-  $('alternarCadastro').textContent = cadastro ? '← Já tenho conta' : 'Primeiro acesso? Criar conta';
-  $('l_senha').autocomplete = cadastro ? 'new-password' : 'current-password';
-});
+        async function sincronizar() {
+          await carregarParticipantes();
+          if (cfgEst.auto) carregarPendentes();
+        }
 
-async function sair(){ await sb.auth.signOut(); }
-$('btnSair').addEventListener('click', sair);
-$('btnSairNegado').addEventListener('click', sair);
+        /* ============================ participantes ============================ */
+        async function carregarParticipantes() {
+          const { data, error } = await sb
+            .from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
+            .select('*')
+            .order('criado_em', { ascending: false });
+          if (error) { aviso('Erro ao carregar inscrições: ' + error.message, true); return; }
+          participantes = new Map((data || []).map((p) => [p.id, p]));
+          renderLista();
+        }
 
-/* ============================ entrada no painel ============================ */
-async function entrarNoPainel(){
-  carregarCfgEstacao();
-  await Promise.all([carregarParticipantes(), carregarConfigEvento(), carregarAdmins()]);
-  ligarRealtime();
-  conectarImpressora();
-  atualizarPreviewEstacao();
-  if(pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(() => { if(!document.hidden) sincronizar(); }, 60000);
-  document.addEventListener('visibilitychange', () => { if(!document.hidden && entrouNoPainel) sincronizar(); });
-  if(cfgEst.auto){ $('e_auto').checked = true; refletirAuto(); carregarPendentes(); }
-}
+        const localUpsert = (p) => { participantes.set(p.id, p); renderLista(); };
+        const localRemove = (id) => {
+          participantes.delete(id);
+          fila = fila.filter((x) => x !== id);
+          renderLista();
+        };
+        const linhasOrdenadas = () =>
+          [...participantes.values()].sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
 
-async function sincronizar(){
-  await carregarParticipantes();
-  if(cfgEst.auto) carregarPendentes();
-}
+        function renderLista() {
+          const filtro = norm($('busca').value.trim());
+          const linhas = linhasOrdenadas().filter(
+            (p) => !filtro || norm(p.nome).includes(filtro) || norm(p.empresa).includes(filtro)
+          );
 
-/* ============================ participantes (CRUD) ============================ */
-async function carregarParticipantes(){
-  const { data, error } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
-    .select('*').order('criado_em', { ascending:false });
-  if(error){ banner('banner', 'Erro ao carregar inscrições: ' + esc(error.message), 'err'); return; }
-  participantes = new Map((data || []).map(p => [p.id, p]));
-  renderTabela();
-}
+          $('listaParticipantes').innerHTML = linhas
+            .map((p) => {
+              const dados = [
+                p.segmento && '🍽 ' + esc(p.segmento),
+                p.faturamento && '💰 ' + esc(p.faturamento),
+                p.sistema && '💻 ' + esc(p.sistema),
+                '🕒 ' + fmtData(p.criado_em),
+                p.origem === 'admin' ? '✍️ recepção' : '',
+              ].filter(Boolean);
+              return `
+              <article class="linha-participante${p.impresso_em ? '' : ' linha-participante--pendente'}" data-id="${p.id}">
+                <div class="linha-participante__corpo">
+                  <div class="linha-participante__topo">
+                    <span class="linha-participante__nome">${esc(p.nome)}</span>
+                    <span class="chip ${p.impresso_em ? 'chip--faixa-5' : 'chip--faixa-4'}">
+                      ${p.impresso_em ? 'Crachá impresso' : 'Na fila'}
+                    </span>
+                  </div>
+                  <p class="linha-participante__empresa">
+                    ${esc(p.empresa || '—')}${p.funcao ? ' · <strong style="color:var(--bone-100)">' + esc(p.funcao) + '</strong>' : ''}
+                  </p>
+                  <div class="linha-participante__dados">${dados.map((d) => '<span>' + d + '</span>').join('')}</div>
+                </div>
+                <div class="linha-participante__acoes">
+                  <button type="button" class="btn btn-secundario btn--curto" data-acao="imprimir">
+                    ${p.impresso_em ? 'Reimprimir' : 'Imprimir'}
+                  </button>
+                  <button type="button" class="btn btn-texto btn--curto" data-acao="editar">Editar</button>
+                  <button type="button" class="btn btn-perigo btn--curto" data-acao="excluir">Excluir</button>
+                </div>
+              </article>`;
+            })
+            .join('');
 
-function localUpsert(p){ participantes.set(p.id, p); renderTabela(); }
-function localRemove(id){ participantes.delete(id); fila = fila.filter(x => x !== id); renderTabela(); }
+          const tot = participantes.size;
+          const impressos = [...participantes.values()].filter((p) => p.impresso_em).length;
+          $('contador').textContent =
+            linhas.length === tot
+              ? tot + (tot === 1 ? ' inscrição' : ' inscrições')
+              : linhas.length + ' de ' + tot + ' inscrições';
+          $('totalInscritos').textContent = tot;
+          $('totalImpressos').textContent = impressos;
+          $('totalPendentes').textContent = tot - impressos;
+          mostrar('listaVazia', tot === 0);
+          atualizarPendentes();
+        }
+        $('busca').addEventListener('input', renderLista);
 
-function linhasOrdenadas(){
-  return [...participantes.values()].sort((a,b) => new Date(b.criado_em) - new Date(a.criado_em));
-}
+        $('listaParticipantes').addEventListener('click', async (ev) => {
+          const btn = ev.target.closest('button[data-acao]');
+          if (!btn) return;
+          const p = participantes.get(btn.closest('[data-id]').dataset.id);
+          if (!p) return;
+          if (btn.dataset.acao === 'editar') abrirModal(p);
+          else if (btn.dataset.acao === 'excluir') excluir(p);
+          else if (btn.dataset.acao === 'imprimir') {
+            btn.disabled = true;
+            await imprimirUm(p);
+            btn.disabled = false;
+          }
+        });
 
-function renderTabela(){
-  const filtro = norm($('busca').value.trim());
-  const corpo = $('corpoTabela');
-  const linhas = linhasOrdenadas().filter(p => !filtro || norm(p.nome).includes(filtro) || norm(p.empresa).includes(filtro));
-  corpo.innerHTML = linhas.map(p => `
-    <tr data-id="${p.id}">
-      <td><b>${esc(p.nome)}</b>${p.origem === 'admin' ? '<div class="sub">cadastro manual</div>' : ''}</td>
-      <td>${esc(p.empresa || '—')}</td>
-      <td>${esc(p.funcao || '—')}</td>
-      <td>${esc(p.segmento || '—')}</td>
-      <td>${esc(p.faturamento || '—')}</td>
-      <td>${esc(p.sistema || '—')}</td>
-      <td class="sub">${fmtData(p.criado_em)}</td>
-      <td>${p.impresso_em
-            ? '<span class="tag imp">Impresso ' + fmtData(p.impresso_em) + '</span>'
-            : '<span class="tag pend">Pendente</span>'}</td>
-      <td class="acoes">
-        <button class="btn mini" data-acao="imprimir">${p.impresso_em ? 'Reimprimir' : 'Imprimir'}</button>
-        <button class="btn mini" data-acao="editar">Editar</button>
-        <button class="btn mini perigo" data-acao="excluir">Excluir</button>
-      </td>
-    </tr>`).join('');
-  const tot = participantes.size;
-  $('contador').textContent = `${linhas.length === tot ? tot : linhas.length + ' de ' + tot} inscriç${tot === 1 ? 'ão' : 'ões'}`;
-  atualizarPendentes();
-}
-$('busca').addEventListener('input', renderTabela);
+        /* --- modal --- */
+        function abrirModal(p) {
+          editandoId = p ? p.id : null;
+          $('modalTitulo').textContent = p ? 'Editar participante' : 'Novo participante';
+          $('m_nome').value = p ? p.nome : '';
+          $('m_empresa').value = p ? p.empresa || '' : '';
+          const naLista = p && p.funcao && CRACHA_OPCOES.funcao.includes(p.funcao);
+          const funcaoSel = naLista ? p.funcao : p && p.funcao ? 'Outro' : '';
+          $('m_funcao').value = funcaoSel;
+          $('m_funcao_outro').value = funcaoSel === 'Outro' ? p.funcao : '';
+          mostrar('m_funcao_outro_box', funcaoSel === 'Outro');
+          $('m_faturamento').value = p && p.faturamento ? p.faturamento : '';
+          $('m_segmento').value = p && p.segmento ? p.segmento : '';
+          $('m_sistema').value = p ? p.sistema || '' : '';
+          mostrar('modalBanner', false);
+          mostrar('modalFundo', true);
+          document.body.classList.add('sem-rolagem');
+          $('m_nome').focus();
+        }
+        function fecharModal() {
+          mostrar('modalFundo', false);
+          document.body.classList.remove('sem-rolagem');
+          editandoId = null;
+        }
+        $('btnNovo').addEventListener('click', () => abrirModal(null));
+        $('btnModalCancelar').addEventListener('click', fecharModal);
+        $('modalFundo').addEventListener('click', (ev) => {
+          if (ev.target === $('modalFundo')) fecharModal();
+        });
 
-$('corpoTabela').addEventListener('click', async ev => {
-  const btn = ev.target.closest('button[data-acao]');
-  if(!btn) return;
-  const id = btn.closest('tr').dataset.id;
-  const p = participantes.get(id);
-  if(!p) return;
-  if(btn.dataset.acao === 'editar') abrirModal(p);
-  else if(btn.dataset.acao === 'excluir') excluir(p);
-  else if(btn.dataset.acao === 'imprimir'){
-    btn.disabled = true;
-    await imprimirUm(p);
-    btn.disabled = false;
-  }
-});
+        $('formParticipante').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const funcaoSel = $('m_funcao').value;
+          const d = {
+            nome: $('m_nome').value.trim(),
+            empresa: $('m_empresa').value.trim(),
+            funcao: funcaoSel === 'Outro' ? $('m_funcao_outro').value.trim() : funcaoSel,
+            faturamento: $('m_faturamento').value,
+            segmento: $('m_segmento').value,
+            sistema: $('m_sistema').value.trim(),
+          };
+          const erro =
+            d.nome.length < 2 ? 'Informe o nome completo.'
+            : !d.empresa ? 'Informe a empresa.'
+            : funcaoSel === 'Outro' && !d.funcao ? 'Escreva qual é a função.'
+            : null;
+          if (erro) { alerta('modalBanner', null, erro); return; }
 
-/* --- modal criar/editar --- */
-function abrirModal(p){
-  editandoId = p ? p.id : null;
-  $('modalTitulo').textContent = p ? 'Editar participante' : 'Novo participante';
-  $('m_nome').value = p ? p.nome : '';
-  $('m_empresa').value = p ? (p.empresa || '') : '';
-  const funcaoPadrao = p && p.funcao && CRACHA_OPCOES.funcao.includes(p.funcao) ? p.funcao : (p && p.funcao ? 'Outro' : '');
-  $('m_funcao').value = funcaoPadrao;
-  $('m_funcao_outro').value = funcaoPadrao === 'Outro' ? p.funcao : '';
-  $('m_funcao_outro_box').style.display = funcaoPadrao === 'Outro' ? '' : 'none';
-  $('m_faturamento').value = p && p.faturamento ? p.faturamento : '';
-  $('m_segmento').value = p && p.segmento ? p.segmento : '';
-  $('m_sistema').value = p ? (p.sistema || '') : '';
-  fecharBanner('modalBanner');
-  $('modalFundo').classList.add('show');
-  $('m_nome').focus();
-}
-function fecharModal(){ $('modalFundo').classList.remove('show'); editandoId = null; }
-$('btnNovo').addEventListener('click', () => abrirModal(null));
-$('btnModalCancelar').addEventListener('click', fecharModal);
-$('modalFundo').addEventListener('click', ev => { if(ev.target === $('modalFundo')) fecharModal(); });
+          $('btnModalSalvar').disabled = true;
+          const res = editandoId
+            ? await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).update(d).eq('id', editandoId).select().single()
+            : await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).insert({ ...d, origem: 'admin' }).select().single();
+          $('btnModalSalvar').disabled = false;
 
-$('formParticipante').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const funcaoSel = $('m_funcao').value;
-  const d = {
-    nome: $('m_nome').value.trim(),
-    empresa: $('m_empresa').value.trim(),
-    funcao: funcaoSel === 'Outro' ? $('m_funcao_outro').value.trim() : funcaoSel,
-    faturamento: $('m_faturamento').value,
-    segmento: $('m_segmento').value,
-    sistema: $('m_sistema').value.trim()
-  };
-  if(d.nome.length < 2){ banner('modalBanner', 'Informe o nome.', 'err', true); return; }
-  if(!d.empresa){ banner('modalBanner', 'Informe a empresa.', 'err', true); return; }
-  if(funcaoSel === 'Outro' && !d.funcao){ banner('modalBanner', 'Escreva a função.', 'err', true); return; }
-  $('btnModalSalvar').disabled = true;
-  let res;
-  if(editandoId){
-    res = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).update(d).eq('id', editandoId).select().single();
-  } else {
-    res = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).insert({ ...d, origem:'admin' }).select().single();
-  }
-  $('btnModalSalvar').disabled = false;
-  if(res.error){ banner('modalBanner', 'Erro ao salvar: ' + esc(res.error.message), 'err', true); return; }
-  localUpsert(res.data);
-  if(!editandoId && cfgEst.auto) enfileirar(res.data.id);
-  fecharModal();
-  banner('banner', editandoId ? 'Participante atualizado.' : 'Participante cadastrado.', 'ok');
-});
+          if (res.error) { alerta('modalBanner', null, 'Erro ao salvar: ' + res.error.message); return; }
+          const eraNovo = !editandoId;
+          localUpsert(res.data);
+          if (eraNovo && cfgEst.auto) enfileirar(res.data.id);
+          fecharModal();
+          aviso(eraNovo ? 'Participante cadastrado.' : 'Participante atualizado.');
+        });
 
-async function excluir(p){
-  if(!confirm(`Excluir a inscrição de "${p.nome}"? Essa ação não pode ser desfeita.`)) return;
-  const { error } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).delete().eq('id', p.id);
-  if(error){ banner('banner', 'Erro ao excluir: ' + esc(error.message), 'err'); return; }
-  localRemove(p.id);
-  banner('banner', 'Inscrição excluída.', 'ok');
-}
+        async function excluir(p) {
+          if (!confirm('Excluir a inscrição de "' + p.nome + '"? Essa ação não pode ser desfeita.')) return;
+          const { error } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).delete().eq('id', p.id);
+          if (error) { aviso('Erro ao excluir: ' + error.message, true); return; }
+          localRemove(p.id);
+          aviso('Inscrição excluída.');
+        }
 
-/* --- exportação --- */
-function montarLinhasExport(){
-  return linhasOrdenadas().map(p => ({
-    'Nome': p.nome, 'Empresa': p.empresa || '', 'Função': p.funcao || '',
-    'Segmento': p.segmento || '', 'Faturamento mensal': p.faturamento || '',
-    'Sistema que utiliza': p.sistema || '',
-    'Origem': p.origem === 'admin' ? 'Recepção' : 'QR Code',
-    'Inscrição em': p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
-    'Crachá impresso em': p.impresso_em ? new Date(p.impresso_em).toLocaleString('pt-BR') : ''
-  }));
-}
-function nomeArquivo(ext){ return 'participantes-' + new Date().toISOString().slice(0,10) + '.' + ext; }
+        /* --- exportação --- */
+        const linhasExport = () =>
+          linhasOrdenadas().map((p) => ({
+            Nome: p.nome,
+            Empresa: p.empresa || '',
+            Função: p.funcao || '',
+            Segmento: p.segmento || '',
+            'Faturamento mensal': p.faturamento || '',
+            'Sistema que utiliza': p.sistema || '',
+            Origem: p.origem === 'admin' ? 'Recepção' : 'QR Code',
+            'Inscrição em': p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
+            'Crachá impresso em': p.impresso_em ? new Date(p.impresso_em).toLocaleString('pt-BR') : '',
+          }));
+        const nomeArquivo = (ext) => 'participantes-' + new Date().toISOString().slice(0, 10) + '.' + ext;
 
-$('btnXlsx').addEventListener('click', () => {
-  const ws = XLSX.utils.json_to_sheet(montarLinhasExport());
-  ws['!cols'] = [{wch:28},{wch:26},{wch:14},{wch:20},{wch:20},{wch:22},{wch:10},{wch:17},{wch:17}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Participantes');
-  XLSX.writeFile(wb, nomeArquivo('xlsx'));
-});
-$('btnCsv').addEventListener('click', () => {
-  const ws = XLSX.utils.json_to_sheet(montarLinhasExport());
-  const csv = '﻿' + XLSX.utils.sheet_to_csv(ws, { FS: ';' });   // BOM + ; p/ Excel pt-BR
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
-  a.download = nomeArquivo('csv');
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
+        $('btnXlsx').addEventListener('click', () => {
+          const ws = XLSX.utils.json_to_sheet(linhasExport());
+          ws['!cols'] = [{ wch: 28 }, { wch: 26 }, { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 10 }, { wch: 17 }, { wch: 17 }];
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Participantes');
+          XLSX.writeFile(wb, nomeArquivo('xlsx'));
+        });
+        $('btnCsv').addEventListener('click', () => {
+          const ws = XLSX.utils.json_to_sheet(linhasExport());
+          const csv = '﻿' + XLSX.utils.sheet_to_csv(ws, { FS: ';' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+          a.download = nomeArquivo('csv');
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
 
-/* ============================ realtime ============================ */
-function pillRealtime(estado, txt){
-  $('pillRealtime').className = 'status ' + estado;
-  $('pillRealtimeTxt').textContent = txt;
-}
-function ligarRealtime(){
-  pararRealtime();
-  canalRealtime = sb.channel('cracha-admin')
-    .on('postgres_changes', { event:'*', schema:'public', table: CRACHA_SUPABASE.TABELA_PARTICIPANTES }, msg => {
-      if(msg.eventType === 'INSERT'){
-        localUpsert(msg.new);
-        if(cfgEst.auto) enfileirar(msg.new.id);
-      } else if(msg.eventType === 'UPDATE'){
-        localUpsert(msg.new);
-      } else if(msg.eventType === 'DELETE'){
-        localRemove(msg.old.id);
-      }
-    })
-    .subscribe(status => {
-      if(status === 'SUBSCRIBED') pillRealtime('on', 'Tempo real ativo');
-      else if(status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') pillRealtime('sim', 'Tempo real: reconectando…');
-      else if(status === 'CLOSED') pillRealtime('off', 'Tempo real desligado');
-    });
-}
-function pararRealtime(){
-  if(canalRealtime){ sb.removeChannel(canalRealtime); canalRealtime = null; }
-  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-}
+        /* ============================ tempo real ============================ */
+        function pilula(id, estado, txt) {
+          $(id).className = 'pilula' + (estado ? ' pilula--' + estado : '');
+          $(id + 'Txt').textContent = txt;
+        }
+        function ligarRealtime() {
+          pararRealtime();
+          canalRealtime = sb
+            .channel('cracha-admin')
+            .on('postgres_changes',
+              { event: '*', schema: 'public', table: CRACHA_SUPABASE.TABELA_PARTICIPANTES },
+              (msg) => {
+                if (msg.eventType === 'INSERT') {
+                  localUpsert(msg.new);
+                  if (cfgEst.auto) enfileirar(msg.new.id);
+                } else if (msg.eventType === 'UPDATE') localUpsert(msg.new);
+                else if (msg.eventType === 'DELETE') localRemove(msg.old.id);
+              }
+            )
+            .subscribe((status) => {
+              if (status === 'SUBSCRIBED') pilula('pillRealtime', 'ok', 'Tempo real ativo');
+              else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR')
+                pilula('pillRealtime', 'aviso', 'Tempo real: reconectando…');
+              else if (status === 'CLOSED') pilula('pillRealtime', '', 'Tempo real desligado');
+            });
+        }
+        function pararRealtime() {
+          if (canalRealtime) { sb.removeChannel(canalRealtime); canalRealtime = null; }
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        }
 
-/* ============================ configurações ============================ */
-async function carregarConfigEvento(){
-  const { data, error } = await sb.from(CRACHA_SUPABASE.TABELA_CONFIG).select('chave,valor');
-  if(error) return;
-  const cfg = Object.fromEntries((data || []).map(r => [r.chave, r.valor]));
-  $('cfg_nome').value = cfg.evento_nome || '';
-  $('cfg_zap').value = cfg.whatsapp_link || '';
-  $('cfg_msg').value = cfg.mensagem_confirmacao || '';
-  montarCartaz();
-}
-$('btnSalvarCfg').addEventListener('click', async () => {
-  const zap = $('cfg_zap').value.trim();
-  if(zap && !/^https:\/\//i.test(zap)){
-    banner('banner', 'O link do WhatsApp precisa começar com https://', 'err'); return;
-  }
-  const linhas = [
-    { chave:'evento_nome', valor: $('cfg_nome').value.trim(), publico:true },
-    { chave:'whatsapp_link', valor: zap, publico:true },
-    { chave:'mensagem_confirmacao', valor: $('cfg_msg').value.trim(), publico:true }
-  ];
-  const { error } = await sb.from(CRACHA_SUPABASE.TABELA_CONFIG).upsert(linhas);
-  if(error){ banner('banner', 'Erro ao salvar: ' + esc(error.message), 'err'); return; }
-  banner('banner', 'Configurações salvas. A página de inscrição já usa os novos textos.', 'ok');
-  montarCartaz();
-});
+        /* ============================ configurações ============================ */
+        let cfgEvento = {};
+        async function carregarConfigEvento() {
+          const { data, error } = await sb.from(CRACHA_SUPABASE.TABELA_CONFIG).select('chave,valor');
+          if (error) return;
+          cfgEvento = Object.fromEntries((data || []).map((r) => [r.chave, r.valor]));
+          $('cfg_nome').value = cfgEvento.evento_nome || '';
+          $('cfg_cidade').value = cfgEvento.evento_cidade || '';
+          $('cfg_zap').value = cfgEvento.whatsapp_link || '';
+          $('cfg_msg').value = cfgEvento.mensagem_confirmacao || '';
+          if (cfgEvento.evento_nome) {
+            $('tituloPainel').textContent = cfgEvento.evento_nome;
+            document.title = 'Painel · ' + cfgEvento.evento_nome;
+          }
+          montarCartaz();
+        }
 
-$('btnTrocarSenha').addEventListener('click', async () => {
-  const s = $('novaSenha').value;
-  if(s.length < 8){ banner('banner', 'A nova senha precisa de pelo menos 8 caracteres.', 'err'); return; }
-  const { error } = await sb.auth.updateUser({ password: s });
-  if(error){ banner('banner', 'Erro ao alterar a senha: ' + esc(error.message), 'err'); return; }
-  $('novaSenha').value = '';
-  banner('banner', 'Senha alterada.', 'ok');
-});
+        $('formConfig').addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const zap = $('cfg_zap').value.trim();
+          if (zap && !/^https:\/\//i.test(zap)) {
+            aviso('O link do WhatsApp precisa começar com https://', true);
+            return;
+          }
+          const linhas = [
+            { chave: 'evento_nome', valor: $('cfg_nome').value.trim(), publico: true },
+            { chave: 'evento_cidade', valor: $('cfg_cidade').value.trim(), publico: true },
+            { chave: 'whatsapp_link', valor: zap, publico: true },
+            { chave: 'mensagem_confirmacao', valor: $('cfg_msg').value.trim(), publico: true },
+          ];
+          const { error } = await sb.from(CRACHA_SUPABASE.TABELA_CONFIG).upsert(linhas);
+          if (error) { aviso('Erro ao salvar: ' + error.message, true); return; }
+          linhas.forEach((l) => (cfgEvento[l.chave] = l.valor));
+          if (cfgEvento.evento_nome) {
+            $('tituloPainel').textContent = cfgEvento.evento_nome;
+            document.title = 'Painel · ' + cfgEvento.evento_nome;
+          }
+          montarCartaz();
+          aviso('Configurações salvas. A inscrição e o cartaz já usam os novos textos.');
+        });
 
-/* --- administradores --- */
-async function carregarAdmins(){
-  const { data, error } = await sb.from('cracha_admins').select('email').order('email');
-  if(error) return;
-  const meu = sessao && sessao.user ? sessao.user.email.toLowerCase() : '';
-  $('listaAdmins').innerHTML = (data || []).map(a => `
-    <li style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)">
-      <span style="flex:1">${esc(a.email)}${a.email.toLowerCase() === meu ? ' <span class="sub">(você)</span>' : ''}</span>
-      ${a.email.toLowerCase() === meu ? '' : `<button class="btn mini perigo" data-email="${esc(a.email)}">Remover</button>`}
-    </li>`).join('');
-}
-$('listaAdmins').addEventListener('click', async ev => {
-  const btn = ev.target.closest('button[data-email]');
-  if(!btn) return;
-  const email = btn.dataset.email;
-  if(!confirm(`Remover o acesso de ${email}?`)) return;
-  const { error } = await sb.from('cracha_admins').delete().eq('email', email);
-  if(error){ banner('banner', 'Erro ao remover: ' + esc(error.message), 'err'); return; }
-  carregarAdmins();
-});
-$('btnAddAdmin').addEventListener('click', async () => {
-  const email = $('novoAdmin').value.trim().toLowerCase();
-  if(!/.+@.+\..+/.test(email)){ banner('banner', 'Informe um e-mail válido.', 'err'); return; }
-  const { error } = await sb.from('cracha_admins').insert({ email });
-  if(error){ banner('banner', 'Erro ao adicionar: ' + esc(error.message), 'err'); return; }
-  $('novoAdmin').value = '';
-  banner('banner', `Pronto! Agora ${esc(email)} pode criar a conta na tela de login.`, 'ok');
-  carregarAdmins();
-});
+        $('btnTrocarSenha').addEventListener('click', async () => {
+          const s = $('novaSenha').value;
+          if (s.length < 8) { aviso('A nova senha precisa de pelo menos 8 caracteres.', true); return; }
+          const { error } = await sb.auth.updateUser({ password: s });
+          if (error) { aviso('Erro ao alterar a senha: ' + error.message, true); return; }
+          $('novaSenha').value = '';
+          aviso('Senha alterada.');
+        });
 
-/* ============================ cartaz QR ============================ */
-function urlInscricao(){ return new URL('inscricao.html', location.href).href; }
-function montarCartaz(){
-  $('cartazEvento').textContent = $('cfg_nome').value.trim() || 'Inscrição do evento';
-  const url = urlInscricao();
-  $('cartazUrl').textContent = url;
-  try{
-    const qr = qrcode(0, 'M');
-    qr.addData(url);
-    qr.make();
-    $('qrBox').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
-  }catch(e){
-    $('qrBox').innerHTML = '<p class="hint">Não foi possível gerar o QR: ' + esc(e.message) + '</p>';
-  }
-}
-$('btnImprimirCartaz').addEventListener('click', () => {
-  montarCartaz();
-  const wrap = $('cartazPrintWrap');
-  wrap.appendChild($('cartaz'));               // move para o wrapper de impressão
-  wrap.style.display = 'block';
-  document.body.classList.add('imprimindo-cartaz');
-  const volta = () => {
-    document.body.classList.remove('imprimindo-cartaz');
-    wrap.style.display = 'none';
-    $('pane_cartaz').appendChild($('cartaz')); // devolve ao painel
-    window.removeEventListener('afterprint', volta);
-  };
-  window.addEventListener('afterprint', volta);
-  window.print();
-});
+        async function carregarAdmins() {
+          const { data, error } = await sb.from('cracha_admins').select('email').order('email');
+          if (error) return;
+          const meu = sessao && sessao.user ? sessao.user.email.toLowerCase() : '';
+          $('listaAdmins').innerHTML = (data || [])
+            .map((a) => {
+              const souEu = a.email.toLowerCase() === meu;
+              return `<div class="linha-admin">
+                  <span class="linha-admin__email">${esc(a.email)}${souEu ? ' <span class="legenda">(você)</span>' : ''}</span>
+                  ${souEu ? '' : `<button type="button" class="btn btn-perigo btn--curto" data-email="${esc(a.email)}">Remover</button>`}
+                </div>`;
+            })
+            .join('');
+        }
+        $('listaAdmins').addEventListener('click', async (ev) => {
+          const btn = ev.target.closest('button[data-email]');
+          if (!btn) return;
+          if (!confirm('Remover o acesso de ' + btn.dataset.email + '?')) return;
+          const { error } = await sb.from('cracha_admins').delete().eq('email', btn.dataset.email);
+          if (error) { aviso('Erro ao remover: ' + error.message, true); return; }
+          carregarAdmins();
+        });
+        $('btnAddAdmin').addEventListener('click', async () => {
+          const email = $('novoAdmin').value.trim().toLowerCase();
+          if (!/.+@.+\..+/.test(email)) { aviso('Informe um e-mail válido.', true); return; }
+          const { error } = await sb.from('cracha_admins').insert({ email });
+          if (error) { aviso('Erro ao adicionar: ' + error.message, true); return; }
+          $('novoAdmin').value = '';
+          aviso('Pronto! Agora ' + email + ' pode criar a conta na tela de login.');
+          carregarAdmins();
+        });
 
-/* ============================ impressora (BrowserPrint) ============================ */
-function pillPrinter(estado, txt){
-  $('pillPrinter').className = 'status ' + estado;
-  $('pillPrinterTxt').textContent = txt;
-}
-function conectarImpressora(){
-  if(cfgEst.simulate){ pillPrinter('sim', 'Modo simulação'); return; }
-  if(typeof BrowserPrint === 'undefined' || window.__bpMissing){
-    pillPrinter('off', 'Browser Print não encontrado');
-    banner('bannerBP', 'O <b>Zebra Browser Print</b> não está rodando neste computador. Instale/abra o programa e clique em Reconectar. (Você pode usar o Modo simulação para testar.)', 'warn', true);
-    preencherImpressoras([]);
-    return;
-  }
-  fecharBanner('bannerBP');
-  pillPrinter('off', 'Procurando impressoras…');
-  BrowserPrint.getLocalDevices(devices => {
-    deviceList = (devices || []).filter(d => d.deviceType === 'printer' || !d.deviceType);
-    preencherImpressoras(deviceList);
-    if(!deviceList.length){
-      pillPrinter('off', 'Nenhuma impressora encontrada');
-      banner('bannerBP', 'Browser Print está rodando, mas nenhuma impressora Zebra foi encontrada. Ligue a impressora, conecte o USB e clique em <b>Reconectar</b>.', 'warn', true);
-      return;
-    }
-    BrowserPrint.getDefaultDevice('printer', def => {
-      const salva = cfgEst.printerName && deviceList.find(d => d.name === cfgEst.printerName);
-      escolherImpressora((salva || def || deviceList[0]).name);
-    }, () => escolherImpressora(deviceList[0].name));
-  }, () => {
-    pillPrinter('off', 'Browser Print não encontrado');
-    preencherImpressoras([]);
-  }, 'printer');
-}
-function preencherImpressoras(lista){
-  const sel = $('printerSelect');
-  sel.innerHTML = '';
-  if(!lista.length){ sel.innerHTML = '<option value="">— nenhuma —</option>'; return; }
-  lista.forEach(d => {
-    const o = document.createElement('option');
-    o.value = d.name; o.textContent = d.name + (d.connection ? ' (' + d.connection + ')' : '');
-    sel.appendChild(o);
-  });
-}
-function escolherImpressora(nome){
-  selectedDevice = deviceList.find(d => d.name === nome) || null;
-  $('printerSelect').value = nome;
-  cfgEst.printerName = nome; salvarCfgEstacao();
-  if(selectedDevice) pillPrinter('on', 'Conectada: ' + selectedDevice.name);
-}
-$('printerSelect').addEventListener('change', () => escolherImpressora($('printerSelect').value));
-$('btnReconectar').addEventListener('click', conectarImpressora);
+        /* ============================ cartaz ============================ */
+        const urlInscricao = () => new URL('inscricao.html', location.href).href;
 
-function sendZpl(zpl){
-  return new Promise((resolve, reject) => {
-    if(cfgEst.simulate){
-      console.log('--- ZPL (simulado) ---\n' + zpl);
-      resolve({ simulated:true });
-      return;
-    }
-    if(!selectedDevice){
-      reject('Nenhuma impressora conectada');   // na estação, sem impressora = erro (pausa a fila)
-      return;
-    }
-    selectedDevice.send(zpl, () => resolve({ simulated:false }), e => reject(e || 'Falha ao enviar para a impressora'));
-  });
-}
+        function montarCartaz() {
+          const url = urlInscricao();
+          $('cartazEvento').textContent = (cfgEvento.evento_nome || '').trim() || 'Inscrição do evento';
+          $('cartazCidade').textContent = (cfgEvento.evento_cidade || '').trim();
+          $('cartazUrl').textContent = url;
+          $('cartazUrlImpresso').textContent = url.replace(/^https?:\/\//, '');
+          try {
+            const qr = qrcode(0, 'M');
+            qr.addData(url);
+            qr.make();
+            $('qrBox').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+          } catch (e) {
+            $('qrBox').innerHTML = '<p class="corpo-sm">Não foi possível gerar o QR: ' + esc(e.message) + '</p>';
+          }
+        }
 
-$('btnTeste').addEventListener('click', async () => {
-  const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
-  const layout = C.buildLayout('texto', { nome:'Teste OK', empresa:'Impressora pronta', cargo:String(cfgEst.widthMm)+'×'+cfgEst.heightMm+' mm' }, W, H, cfgEst);
-  try{
-    const r = await sendZpl(C.layoutToZPL(layout, W, H, 1));
-    banner('bannerBP', r.simulated ? 'Teste simulado — veja o ZPL no console (F12).' : 'Etiqueta de teste enviada.', 'ok');
-  }catch(e){ banner('bannerBP', 'Falha no teste: ' + esc(String(e)), 'err', true); }
-});
+        $('cartazClaro').addEventListener('change', () =>
+          $('cartaz').classList.toggle('cartaz--claro', $('cartazClaro').checked)
+        );
 
-/* ============================ estação (fila + claim) ============================ */
-function carregarCfgEstacao(){
-  try{
-    const s = localStorage.getItem(ESTACAO_KEY);
-    if(s) Object.assign(cfgEst, JSON.parse(s));
-    else {
-      // primeiro uso: aproveita as medidas configuradas no console (index.html)
-      const legado = localStorage.getItem('cracha-zd220-config-v2');
-      if(legado){
-        const l = JSON.parse(legado);
-        ['widthMm','heightMm','dark','border','simulate','printerName'].forEach(k => { if(l[k] != null) cfgEst[k] = l[k]; });
-      }
-    }
-  }catch(e){}
-  $('e_w').value = cfgEst.widthMm; $('e_h').value = cfgEst.heightMm;
-  $('e_dark').checked = !!cfgEst.dark; $('e_border').checked = !!cfgEst.border;
-  $('e_sim').checked = !!cfgEst.simulate; $('e_auto').checked = !!cfgEst.auto;
-  refletirAuto();
-}
-function salvarCfgEstacao(){ try{ localStorage.setItem(ESTACAO_KEY, JSON.stringify(cfgEst)); }catch(e){} }
+        $('btnCopiarLink').addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(urlInscricao());
+            aviso('Link copiado.');
+          } catch (e) {
+            aviso('Não foi possível copiar. Selecione o endereço e copie na mão.', true);
+          }
+        });
 
-['e_w','e_h','e_dark','e_border'].forEach(id => $(id).addEventListener('change', () => {
-  cfgEst.widthMm = C.clamp(Number($('e_w').value) || 80, 20, 120);
-  cfgEst.heightMm = C.clamp(Number($('e_h').value) || 30, 15, 120);
-  cfgEst.dark = $('e_dark').checked;
-  cfgEst.border = $('e_border').checked;
-  salvarCfgEstacao();
-  atualizarPreviewEstacao();
-}));
-$('e_sim').addEventListener('change', () => {
-  cfgEst.simulate = $('e_sim').checked; salvarCfgEstacao();
-  conectarImpressora();
-});
-$('e_auto').addEventListener('change', () => {
-  cfgEst.auto = $('e_auto').checked; salvarCfgEstacao();
-  refletirAuto();
-  if(cfgEst.auto){ pausadaPorErro = false; $('btnRetomar').style.display = 'none'; carregarPendentes(); }
-});
-function refletirAuto(){ $('autoBox').classList.toggle('ligada', cfgEst.auto); }
+        $('btnImprimirCartaz').addEventListener('click', () => {
+          montarCartaz();
+          const area = $('area-impressao');
+          area.appendChild($('cartaz'));
+          area.style.display = 'block';
+          document.body.classList.add('imprimindo-cartaz');
+          const voltar = () => {
+            document.body.classList.remove('imprimindo-cartaz');
+            area.style.display = 'none';
+            $('areaCartaz').appendChild($('cartaz'));
+            window.removeEventListener('afterprint', voltar);
+          };
+          window.addEventListener('afterprint', voltar);
+          window.print();
+        });
 
-function pendentesLocais(){ return linhasOrdenadas().filter(p => !p.impresso_em); }
-function atualizarPendentes(){ $('numPendentes').textContent = pendentesLocais().length; }
+        /* ============================ impressora ============================ */
+        function conectarImpressora() {
+          if (cfgEst.simulate) { pilula('pillPrinter', 'aviso', 'Modo simulação'); return; }
+          if (typeof BrowserPrint === 'undefined' || window.__bpMissing) {
+            pilula('pillPrinter', 'erro', 'Browser Print ausente');
+            alerta('bannerBP', 'Browser Print não encontrado',
+              'O programa Zebra Browser Print não está rodando neste computador. Abra-o e clique em Reconectar — ou use o Modo simulação para testar.');
+            preencherImpressoras([]);
+            return;
+          }
+          mostrar('bannerBP', false);
+          pilula('pillPrinter', '', 'Procurando impressoras…');
+          BrowserPrint.getLocalDevices(
+            (devices) => {
+              deviceList = (devices || []).filter((d) => d.deviceType === 'printer' || !d.deviceType);
+              preencherImpressoras(deviceList);
+              if (!deviceList.length) {
+                pilula('pillPrinter', 'erro', 'Nenhuma impressora');
+                alerta('bannerBP', 'Nenhuma impressora encontrada',
+                  'O Browser Print está rodando, mas não achou a Zebra. Ligue a impressora, confira o cabo USB e clique em Reconectar.');
+                return;
+              }
+              BrowserPrint.getDefaultDevice('printer',
+                (def) => {
+                  const salva = cfgEst.printerName && deviceList.find((d) => d.name === cfgEst.printerName);
+                  escolherImpressora((salva || def || deviceList[0]).name);
+                },
+                () => escolherImpressora(deviceList[0].name)
+              );
+            },
+            () => {
+              pilula('pillPrinter', 'erro', 'Browser Print ausente');
+              preencherImpressoras([]);
+            },
+            'printer'
+          );
+        }
+        function preencherImpressoras(lista) {
+          const sel = $('printerSelect');
+          sel.innerHTML = '';
+          if (!lista.length) { sel.innerHTML = '<option value="">— nenhuma —</option>'; return; }
+          lista.forEach((d) => {
+            const o = document.createElement('option');
+            o.value = d.name;
+            o.textContent = d.name + (d.connection ? ' (' + d.connection + ')' : '');
+            sel.appendChild(o);
+          });
+        }
+        function escolherImpressora(nome) {
+          selectedDevice = deviceList.find((d) => d.name === nome) || null;
+          $('printerSelect').value = nome;
+          cfgEst.printerName = nome;
+          salvarCfgEstacao();
+          if (selectedDevice) pilula('pillPrinter', 'ok', selectedDevice.name);
+        }
+        $('printerSelect').addEventListener('change', () => escolherImpressora($('printerSelect').value));
+        $('btnReconectar').addEventListener('click', conectarImpressora);
 
-function enfileirar(id){
-  if(!fila.includes(id)) fila.push(id);
-  processarFila();
-}
-async function carregarPendentes(){
-  const { data, error } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
-    .select('*').is('impresso_em', null).order('criado_em', { ascending:true });
-  if(error){ banner('bannerEstacao', 'Erro ao buscar pendentes: ' + esc(error.message), 'err'); return; }
-  (data || []).forEach(p => { participantes.set(p.id, p); if(!fila.includes(p.id)) fila.push(p.id); });
-  renderTabela();
-  processarFila();
-}
-$('btnImprimirPendentes').addEventListener('click', () => { pausadaPorErro = false; $('btnRetomar').style.display='none'; carregarPendentes(); });
-$('btnRetomar').addEventListener('click', () => {
-  pausadaPorErro = false;
-  $('btnRetomar').style.display = 'none';
-  fecharBanner('bannerEstacao');
-  processarFila();
-});
+        function sendZpl(zpl) {
+          return new Promise((resolve, reject) => {
+            if (cfgEst.simulate) {
+              console.log('--- ZPL (simulado) ---\n' + zpl);
+              resolve({ simulated: true });
+              return;
+            }
+            if (!selectedDevice) { reject('Nenhuma impressora conectada'); return; }
+            selectedDevice.send(zpl,
+              () => resolve({ simulated: false }),
+              (e) => reject(e || 'Falha ao enviar para a impressora'));
+          });
+        }
 
-async function processarFila(){
-  if(processando || pausadaPorErro || !fila.length) return;
-  processando = true;
-  while(fila.length && !pausadaPorErro){
-    const id = fila.shift();
-    try{
-      const ok = await imprimirComClaim(id);
-      if(ok) await sleep(300);                    // ritmo p/ a memória da ZD220
-    }catch(e){
-      fila.unshift(id);
-      pausadaPorErro = true;
-      $('btnRetomar').style.display = '';
-      banner('bannerEstacao', '❌ Impressão falhou: ' + esc(String(e)) + '<br>A fila foi pausada — verifique a impressora e clique em <b>Retomar</b>.', 'err', true);
-    }
-  }
-  processando = false;
-}
+        $('btnTeste').addEventListener('click', async () => {
+          const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
+          const layout = C.buildLayout('texto',
+            { nome: 'Teste OK', empresa: 'Impressora pronta', cargo: cfgEst.widthMm + '×' + cfgEst.heightMm + ' mm' },
+            W, H, cfgEst);
+          try {
+            const r = await sendZpl(C.layoutToZPL(layout, W, H, 1));
+            aviso(r.simulated ? 'Teste simulado — veja o ZPL no console (F12).' : 'Etiqueta de teste enviada.');
+          } catch (e) {
+            aviso('Falha no teste: ' + e, true);
+          }
+        });
 
-/* Marca como impresso ANTES de imprimir (claim). Se outra tela já pegou, pula.
-   Se a impressora falhar, desfaz o claim e propaga o erro. */
-async function imprimirComClaim(id){
-  const { data, error } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
-    .update({ impresso_em: new Date().toISOString() })
-    .eq('id', id).is('impresso_em', null).select();
-  if(error) throw error.message || 'falha de conexão com o banco';
-  if(!data || !data.length){                     // outra estação imprimiu primeiro
-    registrarLog(participantes.get(id), 'pulado (já impresso em outra tela)', 'ok');
-    return false;
-  }
-  const p = data[0];
-  localUpsert(p);
-  try{
-    await imprimirCracha(p);
-    registrarLog(p, cfgEst.simulate ? 'simulado' : 'impresso', 'ok');
-    return true;
-  }catch(e){
-    await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
-      .update({ impresso_em: null }).eq('id', id);
-    const { data: volta } = await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).select('*').eq('id', id).single();
-    if(volta) localUpsert(volta);
-    registrarLog(p, 'falhou', 'err');
-    throw e;
-  }
-}
+        /* ============================ estação ============================ */
+        function carregarCfgEstacao() {
+          try {
+            const s = localStorage.getItem(ESTACAO_KEY);
+            if (s) Object.assign(cfgEst, JSON.parse(s));
+            else {
+              const legado = localStorage.getItem('cracha-zd220-config-v2');
+              if (legado) {
+                const l = JSON.parse(legado);
+                ['widthMm', 'heightMm', 'dark', 'border', 'simulate', 'printerName'].forEach((k) => {
+                  if (l[k] != null) cfgEst[k] = l[k];
+                });
+              }
+            }
+          } catch (e) {}
+          $('e_w').value = cfgEst.widthMm;
+          $('e_h').value = cfgEst.heightMm;
+          $('e_dark').checked = !!cfgEst.dark;
+          $('e_border').checked = !!cfgEst.border;
+          $('e_sim').checked = !!cfgEst.simulate;
+          $('e_auto').checked = !!cfgEst.auto;
+          refletirAuto();
+        }
+        const salvarCfgEstacao = () => {
+          try { localStorage.setItem(ESTACAO_KEY, JSON.stringify(cfgEst)); } catch (e) {}
+        };
 
-/* Impressão manual da linha (Imprimir/Reimprimir) */
-async function imprimirUm(p){
-  try{
-    if(!p.impresso_em){
-      const ok = await imprimirComClaim(p.id);
-      if(ok) banner('banner', 'Crachá de ' + esc(p.nome) + (cfgEst.simulate ? ' simulado.' : ' enviado para a impressora.'), 'ok');
-    } else {
-      await imprimirCracha(p);
-      const agora = new Date().toISOString();
-      await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).update({ impresso_em: agora }).eq('id', p.id);
-      localUpsert({ ...p, impresso_em: agora });
-      registrarLog(p, cfgEst.simulate ? 'reimpresso (simulado)' : 'reimpresso', 'ok');
-      banner('banner', 'Crachá de ' + esc(p.nome) + ' reimpresso.', 'ok');
-    }
-  }catch(e){
-    banner('banner', '❌ Erro ao imprimir: ' + esc(String(e)), 'err', true);
-  }
-}
+        ['e_w', 'e_h', 'e_dark', 'e_border'].forEach((id) =>
+          $(id).addEventListener('change', () => {
+            cfgEst.widthMm = C.clamp(Number($('e_w').value) || 80, 20, 120);
+            cfgEst.heightMm = C.clamp(Number($('e_h').value) || 30, 15, 120);
+            cfgEst.dark = $('e_dark').checked;
+            cfgEst.border = $('e_border').checked;
+            salvarCfgEstacao();
+            atualizarPrevia();
+          })
+        );
+        $('e_sim').addEventListener('change', () => {
+          cfgEst.simulate = $('e_sim').checked;
+          salvarCfgEstacao();
+          conectarImpressora();
+        });
+        $('e_auto').addEventListener('change', () => {
+          cfgEst.auto = $('e_auto').checked;
+          salvarCfgEstacao();
+          refletirAuto();
+          if (cfgEst.auto) {
+            pausadaPorErro = false;
+            mostrar('btnRetomar', false);
+            carregarPendentes();
+          }
+        });
+        const refletirAuto = () => $('caixaAuto').classList.toggle('caixa-auto--ligada', cfgEst.auto);
 
-function dadosCracha(p){
-  return { nome: C.shortName(p.nome) || p.nome, empresa: p.empresa || '', cargo: p.funcao || '' };
-}
-async function imprimirCracha(p){
-  const d = dadosCracha(p);
-  const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
-  const zpl = C.layoutToZPL(C.buildLayout('texto', d, W, H, cfgEst), W, H, 1);
-  await sendZpl(zpl);
-  ultimoImpresso = d;
-  atualizarPreviewEstacao();
-}
+        const pendentesLocais = () => linhasOrdenadas().filter((p) => !p.impresso_em);
+        const atualizarPendentes = () => ($('numPendentes').textContent = pendentesLocais().length);
 
-function atualizarPreviewEstacao(){
-  const d = ultimoImpresso || { nome:'Maria Alves', empresa:'Life Box', cargo:'Dona' };
-  const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
-  C.renderToCanvas($('previewEstacao'), C.buildLayout('texto', d, W, H, cfgEst), W, H, 372, 220, cfgEst);
-}
+        function enfileirar(id) {
+          if (!fila.includes(id)) fila.push(id);
+          processarFila();
+        }
+        async function carregarPendentes() {
+          const { data, error } = await sb
+            .from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
+            .select('*')
+            .is('impresso_em', null)
+            .order('criado_em', { ascending: true });
+          if (error) { aviso('Erro ao buscar a fila: ' + error.message, true); return; }
+          (data || []).forEach((p) => {
+            participantes.set(p.id, p);
+            if (!fila.includes(p.id)) fila.push(p.id);
+          });
+          renderLista();
+          processarFila();
+        }
+        $('btnImprimirPendentes').addEventListener('click', () => {
+          pausadaPorErro = false;
+          mostrar('btnRetomar', false);
+          mostrar('bannerEstacao', false);
+          carregarPendentes();
+        });
+        $('btnRetomar').addEventListener('click', () => {
+          pausadaPorErro = false;
+          mostrar('btnRetomar', false);
+          mostrar('bannerEstacao', false);
+          processarFila();
+        });
 
-function registrarLog(p, txt, tipo){
-  const li = document.createElement('li');
-  li.innerHTML = `<span class="${tipo}">${tipo === 'ok' ? '✔' : '✖'}</span> ` +
-    `${new Date().toLocaleTimeString('pt-BR')} — <b>${esc(p ? p.nome : '?')}</b> · ${esc(txt)}`;
-  const ul = $('logEstacao');
-  ul.insertBefore(li, ul.firstChild);
-  while(ul.children.length > 20) ul.removeChild(ul.lastChild);
-}
+        async function processarFila() {
+          if (processando || pausadaPorErro || !fila.length) return;
+          processando = true;
+          while (fila.length && !pausadaPorErro) {
+            const id = fila.shift();
+            try {
+              const ok = await imprimirComClaim(id);
+              if (ok) await sleep(300);
+            } catch (e) {
+              fila.unshift(id);
+              pausadaPorErro = true;
+              mostrar('btnRetomar', true);
+              alerta('bannerEstacao', 'Impressão pausada',
+                String(e) + ' — resolva o problema e clique em “Retomar impressão”. Ninguém fica sem crachá.');
+            }
+          }
+          processando = false;
+        }
 
-/* ============================ boot ============================ */
-initSupabase();
-})();
-</script>
-</body>
+        /* Marca como impresso ANTES de imprimir. Se outra tela já pegou, pula.
+           Se a impressora falhar, desfaz a marcação e propaga o erro. */
+        async function imprimirComClaim(id) {
+          const { data, error } = await sb
+            .from(CRACHA_SUPABASE.TABELA_PARTICIPANTES)
+            .update({ impresso_em: new Date().toISOString() })
+            .eq('id', id)
+            .is('impresso_em', null)
+            .select();
+          if (error) throw error.message || 'falha de conexão com o banco';
+          if (!data || !data.length) {
+            registrar(participantes.get(id), 'já impresso em outra tela', 'ok');
+            return false;
+          }
+          const p = data[0];
+          localUpsert(p);
+          try {
+            await imprimirCracha(p);
+            registrar(p, cfgEst.simulate ? 'simulado' : 'impresso', 'ok');
+            return true;
+          } catch (e) {
+            await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).update({ impresso_em: null }).eq('id', id);
+            const { data: volta } = await sb
+              .from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).select('*').eq('id', id).single();
+            if (volta) localUpsert(volta);
+            registrar(p, 'falhou', 'erro');
+            throw e;
+          }
+        }
+
+        async function imprimirUm(p) {
+          try {
+            if (!p.impresso_em) {
+              const ok = await imprimirComClaim(p.id);
+              if (ok) aviso('Crachá de ' + p.nome + (cfgEst.simulate ? ' simulado.' : ' enviado para a impressora.'));
+            } else {
+              await imprimirCracha(p);
+              const agora = new Date().toISOString();
+              await sb.from(CRACHA_SUPABASE.TABELA_PARTICIPANTES).update({ impresso_em: agora }).eq('id', p.id);
+              localUpsert({ ...p, impresso_em: agora });
+              registrar(p, cfgEst.simulate ? 'reimpresso (simulado)' : 'reimpresso', 'ok');
+              aviso('Crachá de ' + p.nome + ' reimpresso.');
+            }
+          } catch (e) {
+            aviso('Erro ao imprimir: ' + e, true);
+          }
+        }
+
+        const dadosCracha = (p) => ({
+          nome: C.shortName(p.nome) || p.nome,
+          empresa: p.empresa || '',
+          cargo: p.funcao || '',
+        });
+
+        async function imprimirCracha(p) {
+          const d = dadosCracha(p);
+          const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
+          await sendZpl(C.layoutToZPL(C.buildLayout('texto', d, W, H, cfgEst), W, H, 1));
+          ultimoImpresso = d;
+          atualizarPrevia();
+        }
+
+        function atualizarPrevia() {
+          const d = ultimoImpresso || { nome: 'Maria Alves', empresa: 'Life Box', cargo: 'Dona' };
+          const W = C.mm2dots(cfgEst.widthMm), H = C.mm2dots(cfgEst.heightMm);
+          C.renderToCanvas($('previaCracha'), C.buildLayout('texto', d, W, H, cfgEst), W, H, 372, 220, cfgEst);
+        }
+
+        function registrar(p, texto, tipo) {
+          mostrar('registroVazio', false);
+          const item = document.createElement('div');
+          item.className = 'registro__item registro__item--' + tipo;
+          item.innerHTML =
+            '<span class="registro__hora">' + new Date().toLocaleTimeString('pt-BR') + '</span>' +
+            '<span><strong>' + esc(p ? p.nome : '?') + '</strong> · ' + esc(texto) + '</span>';
+          const lista = $('registro');
+          lista.insertBefore(item, lista.firstChild);
+          while (lista.querySelectorAll('.registro__item').length > 20) lista.lastElementChild.remove();
+        }
+
+        /* ============================ início ============================ */
+        initSupabase();
+      })();
+    </script>
+  </body>
 </html>
