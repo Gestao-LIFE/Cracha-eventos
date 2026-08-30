@@ -65,7 +65,7 @@ comment on column public.cracha_config.publico is
   'true = pode ser lido sem login (usado pela página de inscrição).';
 
 insert into public.cracha_config (chave, valor, publico) values
-  ('evento_nome',           'Evento Gestão Life',                        true),
+  ('evento_nome',           'Gestão na Veia',                            true),
   ('evento_cidade',         '',                                          true),
   ('whatsapp_link',         '',                                          true),
   ('mensagem_confirmacao',  'Cadastro concluído! Retire seu crachá na recepção.', true)
