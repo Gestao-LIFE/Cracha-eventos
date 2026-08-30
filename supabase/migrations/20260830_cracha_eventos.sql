@@ -26,6 +26,7 @@ create table if not exists public.cracha_participantes (
   criado_em    timestamptz not null default now(),
   atualizado_em timestamptz not null default now(),
   nome         text not null,
+  telefone     text,
   empresa      text,
   faturamento  text,
   segmento     text,
@@ -35,6 +36,7 @@ create table if not exists public.cracha_participantes (
   impresso_em  timestamptz,
   constraint cracha_nome_preenchido check (length(btrim(nome)) between 2 and 120),
   constraint cracha_empresa_tam     check (empresa is null or length(empresa) <= 120),
+  constraint cracha_telefone_tam    check (telefone is null or length(telefone) <= 30),
   constraint cracha_faturamento_tam check (faturamento is null or length(faturamento) <= 60),
   constraint cracha_segmento_tam    check (segmento is null or length(segmento) <= 60),
   constraint cracha_funcao_tam      check (funcao is null or length(funcao) <= 60),
@@ -142,7 +144,12 @@ create policy cracha_admins_delete on public.cracha_admins
 drop policy if exists cracha_participantes_insert_publico on public.cracha_participantes;
 create policy cracha_participantes_insert_publico on public.cracha_participantes
   for insert to anon, authenticated
-  with check (impresso_em is null and origem = 'qr');
+  with check (
+    impresso_em is null
+    and origem = 'qr'
+    and length(btrim(coalesce(empresa, ''))) > 0
+    and length(regexp_replace(coalesce(telefone, ''), '\D', '', 'g')) >= 8
+  );
 
 -- Admin logado: leitura, cadastro manual, edição e exclusão.
 drop policy if exists cracha_participantes_select_admin on public.cracha_participantes;

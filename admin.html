@@ -123,14 +123,27 @@
             <span class="pill" id="pillRealtime">
               <span class="pill__led"></span><span id="pillRealtimeTxt">Conectando</span>
             </span>
-            <span class="pill" id="pillPrinter">
+            <button type="button" class="pill pill--clicavel" id="pillPrinter"
+                    title="Como ligar a impressora">
               <span class="pill__led"></span><span id="pillPrinterTxt">Impressora</span>
-            </span>
+            </button>
             <span class="legenda" id="userBox"></span>
             <button type="button" class="btn btn-texto btn--curto" id="btnSair">Sair</button>
           </div>
         </div>
       </header>
+
+      <!-- Impressão parada: precisa aparecer mesmo com a recepção na aba de
+           participantes, senão a fila para e ninguém percebe. -->
+      <div class="barra-pausada oculto" id="barraPausada">
+        <div class="barra-pausada__texto">
+          <strong>Impressão pausada</strong>
+          <span id="barraPausadaTexto"></span>
+        </div>
+        <button type="button" class="btn btn-cta btn--curto" id="btnImprimirAgora">
+          Imprimir agora
+        </button>
+      </div>
 
       <div class="halo halo--faixa-inferior"></div>
 
@@ -167,6 +180,9 @@
               <div class="busca">
                 <input type="text" id="busca" placeholder="Buscar por nome ou empresa…" />
               </div>
+              <button type="button" class="btn btn-secundario btn--curto" id="btnAtualizar">
+                Atualizar
+              </button>
               <button type="button" class="btn btn-cta btn--curto" id="btnNovo">Novo participante</button>
               <button type="button" class="btn btn-secundario btn--curto" id="btnXlsx">Planilha .xlsx</button>
               <button type="button" class="btn btn-secundario btn--curto" id="btnCsv">CSV</button>
@@ -252,9 +268,9 @@
                     <strong id="bannerBPTitulo">Aviso</strong>
                     <p id="bannerBPTexto"></p>
                     <div class="grupo-botoes mt-16">
-                      <a class="btn btn-secundario btn--curto"
-                         href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html"
-                         target="_blank" rel="noopener">Baixar o Browser Print</a>
+                      <button type="button" class="btn btn-cta btn--curto" id="btnAjudaEstacao">
+                        Ver o passo a passo
+                      </button>
                       <a class="btn btn-texto btn--curto" href="https://localhost:9101"
                          target="_blank" rel="noopener">Liberar o certificado</a>
                     </div>
@@ -342,15 +358,8 @@
                 </svg>
 
                 <div class="cartaz__interno">
-                  <div class="cartaz__topo">
-                    <div class="marca-gnv" role="img" aria-label="Gestão na Veia"></div>
-                    <div class="endosso">
-                      <span class="endosso__rotulo">Realização:</span>
-                      <div class="marca-gl" role="img" aria-label="Gestão Life"></div>
-                    </div>
-                  </div>
-
                   <div class="cartaz__conteudo">
+                    <div class="marca-gnv cartaz__marca" role="img" aria-label="Gestão na Veia"></div>
                     <p class="cartaz__eyebrow" id="cartazEdicao">Credenciamento</p>
                     <p class="cartaz__titulo">
                       Faça sua <span class="destaque">inscrição</span>
@@ -366,8 +375,10 @@
                   </div>
 
                   <div class="cartaz__rodape">
-                    <div class="simbolo-gl" role="img" aria-label="Gestão Life"></div>
-                    <div class="rodape-canal__filete"></div>
+                    <div class="cartaz__endosso">
+                      <span class="endosso__rotulo">Realização:</span>
+                      <div class="marca-gl" role="img" aria-label="Gestão Life"></div>
+                    </div>
                     <span class="rodape-canal__arroba">@gestaolife</span>
                   </div>
                 </div>
@@ -456,6 +467,11 @@
             <input type="text" id="m_nome" maxlength="120" />
           </div>
           <div class="campo">
+            <label for="m_telefone">Telefone com DDD</label>
+            <input type="tel" id="m_telefone" maxlength="16" inputmode="numeric"
+                   placeholder="(00) 00000-0000" />
+          </div>
+          <div class="campo">
             <label for="m_empresa">Empresa</label>
             <input type="text" id="m_empresa" maxlength="120" />
           </div>
@@ -484,6 +500,45 @@
             <button type="submit" class="btn btn-cta btn--curto" id="btnModalSalvar">Salvar</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ===================== AJUDA DA IMPRESSORA ===================== -->
+    <div class="overlay oculto" id="modalImpressora">
+      <div class="overlay__caixa" style="max-width: 560px">
+        <p class="rotulo">Ligar a impressora neste computador</p>
+        <h2 class="h3 mt-16">Três passos, uma vez por computador</h2>
+        <p class="corpo-sm mt-8" id="ajudaEstado"></p>
+
+        <div class="grupo-botoes mt-24">
+          <a class="btn btn-cta btn--curto" id="ajudaDownload" href="#" target="_blank" rel="noopener">
+            Baixar o Browser Print
+          </a>
+          <a class="btn btn-secundario btn--curto" href="https://localhost:9101"
+             target="_blank" rel="noopener">Liberar o certificado</a>
+        </div>
+        <p class="legenda mt-8" id="ajudaSistema"></p>
+
+        <hr class="filete mt-24 mb-16" />
+
+        <ol class="ajuda-passos" id="ajudaPassos"></ol>
+
+        <hr class="filete mt-24 mb-16" />
+        <p class="legenda">
+          Instaladores guardados no
+          <a href="https://drive.google.com/drive/folders/1dAnXfUy0VKtohrLawIIAhlRLworIxBHp"
+             target="_blank" rel="noopener">Drive da Gestão Life</a>.
+          Também dá para baixar direto da
+          <a href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html"
+             target="_blank" rel="noopener">página da Zebra</a>, que pede um cadastro rápido.
+        </p>
+
+        <div class="grupo-botoes mt-24" style="justify-content: flex-end">
+          <button type="button" class="btn btn-texto btn--curto" id="btnAjudaFechar">Fechar</button>
+          <button type="button" class="btn btn-cta btn--curto" id="btnAjudaReconectar">
+            Já instalei, reconectar
+          </button>
+        </div>
       </div>
     </div>
 
@@ -723,13 +778,22 @@
 
         function renderLista() {
           const filtro = norm($('busca').value.trim());
+          // só procura por telefone quando o que foi digitado tem dígito, senão
+          // o "contém string vazia" casaria com todo mundo.
+          const filtroDigitos = filtro.replace(/\D/g, '');
           const linhas = linhasOrdenadas().filter(
-            (p) => !filtro || norm(p.nome).includes(filtro) || norm(p.empresa).includes(filtro)
+            (p) =>
+              !filtro ||
+              norm(p.nome).includes(filtro) ||
+              norm(p.empresa).includes(filtro) ||
+              (filtroDigitos.length >= 3 &&
+                String(p.telefone || '').replace(/\D/g, '').includes(filtroDigitos))
           );
 
           $('listaParticipantes').innerHTML = linhas
             .map((p) => {
               const dados = [
+                p.telefone && esc(p.telefone),
                 p.segmento && esc(p.segmento),
                 p.faturamento && esc(p.faturamento),
                 p.sistema && esc(p.sistema),
@@ -794,6 +858,7 @@
           editandoId = p ? p.id : null;
           $('modalTitulo').textContent = p ? 'Editar participante' : 'Novo participante';
           $('m_nome').value = p ? p.nome : '';
+          $('m_telefone').value = p ? p.telefone || '' : '';
           $('m_empresa').value = p ? p.empresa || '' : '';
           const naLista = p && p.funcao && CRACHA_OPCOES.funcao.includes(p.funcao);
           const funcaoSel = naLista ? p.funcao : p && p.funcao ? 'Outro' : '';
@@ -824,14 +889,17 @@
           const funcaoSel = $('m_funcao').value;
           const d = {
             nome: $('m_nome').value.trim(),
+            telefone: $('m_telefone').value.trim(),
             empresa: $('m_empresa').value.trim(),
             funcao: funcaoSel === 'Outro' ? $('m_funcao_outro').value.trim() : funcaoSel,
             faturamento: $('m_faturamento').value,
             segmento: $('m_segmento').value,
             sistema: $('m_sistema').value.trim(),
           };
+          const digitos = d.telefone.replace(/\D/g, '').length;
           const erro =
-            d.nome.length < 2 ? 'Informe o nome completo.'
+            d.nome.length < 2 ? 'Informe o nome e o sobrenome.'
+            : digitos < 10 || digitos > 11 ? 'Informe um telefone com DDD.'
             : !d.empresa ? 'Informe a empresa.'
             : funcaoSel === 'Outro' && !d.funcao ? 'Escreva qual é a função.'
             : null;
@@ -863,6 +931,7 @@
         const linhasExport = () =>
           linhasOrdenadas().map((p) => ({
             Nome: p.nome,
+            Telefone: p.telefone || '',
             Empresa: p.empresa || '',
             Função: p.funcao || '',
             Segmento: p.segmento || '',
@@ -876,7 +945,7 @@
 
         $('btnXlsx').addEventListener('click', () => {
           const ws = XLSX.utils.json_to_sheet(linhasExport());
-          ws['!cols'] = [{ wch: 28 }, { wch: 26 }, { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 10 }, { wch: 17 }, { wch: 17 }];
+          ws['!cols'] = [{ wch: 28 }, { wch: 17 }, { wch: 26 }, { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 10 }, { wch: 17 }, { wch: 17 }];
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, 'Participantes');
           XLSX.writeFile(wb, nomeArquivo('xlsx'));
@@ -1141,6 +1210,77 @@
           }
         });
 
+        /* ==================== ajuda da impressora ==================== */
+        // Instaladores no Drive da Gestão Life: já baixados, sem o cadastro da Zebra.
+        const INSTALADOR = {
+          windows: 'https://drive.google.com/file/d/1LHjcOqdUiXKfadywQcsDNm_y-Pu3GN6q/view',
+          mac: 'https://drive.google.com/file/d/1cjgUjAXNvSa5OjnPrfjhJTbODyIhfVYZ/view',
+        };
+        const ehMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+
+        const PASSOS = {
+          mac: [
+            ['Ligue a impressora no cabo USB',
+             'A ZD220 usa USB-B. Em MacBook recente, que só tem USB-C, é preciso cabo ou adaptador. Se o Mac não reconhecer, o problema é o cabo, não o programa.'],
+            ['Adicione a impressora ao Mac',
+             'Ajustes do Sistema, Impressoras e Scanners, Adicionar. O macOS já traz o driver da Zebra, então ela costuma aparecer sozinha. Este passo não existe no Windows, e sem ele o Browser Print não enxerga a impressora.'],
+            ['Instale o Browser Print e libere o certificado',
+             'Depois de instalar, deixe o programa aberto (ícone na barra superior), abra o endereço do certificado no Chrome e aceite o aviso. Use o Chrome, não o Safari.'],
+          ],
+          windows: [
+            ['Ligue a impressora no cabo USB', 'Ligue a ZD220 e espere o Windows reconhecer.'],
+            ['Instale o Browser Print',
+             'Rode o instalador e deixe o programa aberto. Ele fica com um ícone perto do relógio.'],
+            ['Libere o certificado',
+             'Abra o endereço do certificado, clique em Avançado e prossiga. É uma vez só, por computador.'],
+          ],
+        };
+
+        function abrirAjudaImpressora() {
+          const sistema = ehMac ? 'mac' : 'windows';
+          $('ajudaDownload').href = INSTALADOR[sistema];
+          $('ajudaSistema').textContent = ehMac
+            ? 'O download é o instalador para Mac (.dmg).'
+            : 'O download é o instalador para Windows (.exe).';
+          $('ajudaEstado').textContent = cfgEst.simulate
+            ? 'O Modo simulação está ligado: o crachá é gerado, mas nada é impresso.'
+            : selectedDevice
+              ? 'A impressora ' + selectedDevice.name + ' já está conectada.'
+              : 'Nenhuma impressora conectada neste computador ainda.';
+          $('ajudaPassos').innerHTML = PASSOS[sistema]
+            .map((x) => '<li><strong>' + esc(x[0]) + '</strong><span>' + esc(x[1]) + '</span></li>')
+            .join('');
+          mostrar('modalImpressora', true);
+          document.body.classList.add('sem-rolagem');
+        }
+        function fecharAjuda() {
+          mostrar('modalImpressora', false);
+          document.body.classList.remove('sem-rolagem');
+        }
+        $('pillPrinter').addEventListener('click', abrirAjudaImpressora);
+        $('btnAjudaEstacao').addEventListener('click', abrirAjudaImpressora);
+        $('btnAjudaFechar').addEventListener('click', fecharAjuda);
+        $('modalImpressora').addEventListener('click', (ev) => {
+          if (ev.target === $('modalImpressora')) fecharAjuda();
+        });
+        $('btnAjudaReconectar').addEventListener('click', () => {
+          fecharAjuda();
+          conectarImpressora();
+        });
+
+        /* ==================== atualizar sem recarregar ==================== */
+        $('btnAtualizar').addEventListener('click', async () => {
+          const btn = $('btnAtualizar');
+          btn.disabled = true;
+          const antes = btn.textContent;
+          btn.textContent = 'Atualizando…';
+          await sincronizar();
+          await carregarConfigEvento();
+          btn.disabled = false;
+          btn.textContent = antes;
+          aviso(participantes.size + (participantes.size === 1 ? ' inscrição' : ' inscrições') + ' na lista.');
+        });
+
         /* ============================ estação ============================ */
         function carregarCfgEstacao() {
           try {
@@ -1188,8 +1328,7 @@
           salvarCfgEstacao();
           refletirAuto();
           if (cfgEst.auto) {
-            pausadaPorErro = false;
-            mostrar('btnRetomar', false);
+            retomar();
             carregarPendentes();
           }
         });
@@ -1217,17 +1356,38 @@
           processarFila();
         }
         $('btnImprimirPendentes').addEventListener('click', () => {
-          pausadaPorErro = false;
-          mostrar('btnRetomar', false);
-          mostrar('bannerEstacao', false);
+          retomar();
           carregarPendentes();
         });
         $('btnRetomar').addEventListener('click', () => {
+          retomar();
+          processarFila();
+        });
+        // atalho do topo: reconecta a impressora antes de tentar de novo, porque
+        // o motivo mais comum da pausa é o Browser Print ter caído.
+        $('btnImprimirAgora').addEventListener('click', () => {
+          retomar();
+          if (!cfgEst.simulate && !selectedDevice) conectarImpressora();
+          carregarPendentes();
+        });
+
+        /* Uma função só para pausar e outra para voltar, com a barra do topo
+           sempre em sincronia com o banner da aba Estação. */
+        function pausar(motivo) {
+          pausadaPorErro = true;
+          mostrar('btnRetomar', true);
+          alerta('bannerEstacao', 'Impressão pausada',
+            motivo + '. Resolva o problema e clique em Imprimir agora. Ninguém fica sem crachá.');
+          $('barraPausadaTexto').textContent =
+            motivo + '. ' + pendentesLocais().length + ' na fila.';
+          mostrar('barraPausada', true);
+        }
+        function retomar() {
           pausadaPorErro = false;
           mostrar('btnRetomar', false);
           mostrar('bannerEstacao', false);
-          processarFila();
-        });
+          mostrar('barraPausada', false);
+        }
 
         async function processarFila() {
           if (processando || pausadaPorErro || !fila.length) return;
@@ -1239,10 +1399,7 @@
               if (ok) await sleep(300);
             } catch (e) {
               fila.unshift(id);
-              pausadaPorErro = true;
-              mostrar('btnRetomar', true);
-              alerta('bannerEstacao', 'Impressão pausada',
-                String(e) + '. Resolva o problema e clique em Retomar impressão. Ninguém fica sem crachá.');
+              pausar(String(e));
             }
           }
           processando = false;

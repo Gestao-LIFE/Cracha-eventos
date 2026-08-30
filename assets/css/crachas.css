@@ -51,6 +51,108 @@
   }
 }
 
+/* A pílula da impressora abre o passo a passo: é onde a pessoa olha quando
+   o crachá não sai, então é de onde a ajuda tem que sair. */
+.pill--clicavel {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pill--clicavel:hover {
+  border-color: var(--pulse-500);
+}
+
+.pill--clicavel::after {
+  content: '?';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+/* Passos numerados da ajuda */
+.ajuda-passos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  counter-reset: passo;
+}
+
+.ajuda-passos li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 12px;
+  counter-increment: passo;
+}
+
+.ajuda-passos li::before {
+  content: counter(passo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-sm);
+  background: rgba(79, 184, 242, 0.14);
+  border: 1px solid rgba(174, 225, 251, 0.2);
+  color: var(--pulse-300);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ajuda-passos strong {
+  display: block;
+  font-size: 15px;
+  color: var(--frost-100);
+}
+
+.ajuda-passos span {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--frost-55);
+}
+
+/* Impressão parada: barra logo abaixo do topo, visível em qualquer aba.
+   Vermelha de propósito, é a única coisa no painel que exige ação imediata. */
+.barra-pausada {
+  position: sticky;
+  top: 60px;
+  z-index: 29;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px var(--margem-lateral);
+  max-width: 1120px;
+  margin: 0 auto;
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  border: 1px solid rgba(220, 50, 80, 0.45);
+  border-top: none;
+  background: rgba(70, 12, 24, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.barra-pausada__texto strong {
+  display: block;
+  font-size: 15px;
+  color: #ff9aa6;
+}
+
+.barra-pausada__texto span {
+  font-size: 14px;
+  color: var(--frost-72);
+}
+
 /* ---------------------------------------------------------------------
    2. Abas
    --------------------------------------------------------------------- */
@@ -279,28 +381,12 @@
   padding: 3.75cqw;
 }
 
-/* Topo: marca do evento à esquerda, endosso à direita, mesma linha */
+/* Topo do slide continua existindo para as telas do painel e da inscrição */
 .cartaz__topo {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 3cqw;
-}
-
-.cartaz__topo .marca-gnv {
-  height: 3.02cqw;
-}
-
-.cartaz__topo .marca-gl {
-  height: 1.88cqw;
-}
-
-.cartaz__topo .endosso__rotulo {
-  font-size: 1.45cqw;
-}
-
-.cartaz__topo .endosso {
-  gap: 1.2cqw;
 }
 
 /* Conteúdo na margem de 115 */
@@ -312,7 +398,14 @@
   justify-content: center;
   text-align: center;
   gap: 3cqw;
-  padding: 4cqw 2.25cqw 0;
+  padding: 2cqw 2.25cqw 0;
+}
+
+/* A marca do evento domina a peça: grande e centralizada, acima da edição */
+.cartaz__marca {
+  width: 66%;
+  height: auto;
+  margin-bottom: 1cqw;
 }
 
 .cartaz__eyebrow {
@@ -401,24 +494,31 @@
   word-break: break-all;
 }
 
-/* Rodapé de canal: símbolo · filete · @gestaolife */
+/* Rodapé: endosso centralizado e a arroba embaixo */
 .cartaz__rodape {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2.2cqw;
+  gap: 1.6cqw;
 }
 
-.cartaz__rodape .simbolo-gl {
-  height: 2.29cqw;
+.cartaz__endosso {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
 }
 
-.cartaz__rodape .rodape-canal__filete {
-  height: 1px;
-  background: var(--frost-42);
+.cartaz__endosso .endosso__rotulo {
+  font-size: 1.6cqw;
+}
+
+.cartaz__endosso .marca-gl {
+  height: 2.4cqw;
 }
 
 .cartaz__rodape .rodape-canal__arroba {
-  font-size: 1.67cqw;
+  font-size: 1.5cqw;
+  color: var(--frost-42);
 }
 
 /* Versão clara: para impressora comum. A paleta inverte e o vidro vira
@@ -455,7 +555,11 @@
   box-shadow: none;
 }
 .cartaz--claro .cartaz__rodape .rodape-canal__arroba {
-  color: rgba(5, 7, 15, 0.72);
+  color: rgba(5, 7, 15, 0.55);
+}
+/* o rótulo do endosso é Frost: no claro ficaria branco sobre branco */
+.cartaz--claro .cartaz__endosso .endosso__rotulo {
+  color: rgba(5, 7, 15, 0.62);
 }
 .cartaz--claro .cartaz__rodape .rodape-canal__filete {
   background: rgba(5, 7, 15, 0.3);

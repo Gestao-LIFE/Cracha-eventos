@@ -19,6 +19,8 @@
 
     <script src="libs/supabase-js-2.112.4.min.js"></script>
     <script src="js/supabase-config.js"></script>
+    <!-- só para mostrar como o nome vai sair no crachá, com a mesma regra da impressão -->
+    <script src="js/cracha-core.js"></script>
   </head>
   <body>
     <noscript>
@@ -60,10 +62,22 @@
 
             <form class="cartao mt-32" id="form" novalidate>
               <div class="campo">
-                <label for="f_nome">Nome completo</label>
-                <input type="text" id="f_nome" maxlength="120" autocomplete="name"
-                       placeholder="Ex.: Maria Alves da Silva" required />
-                <span class="mensagem-erro oculto" data-erro-de="nome">Informe seu nome.</span>
+                <label for="f_nome">Nome e sobrenome</label>
+                <input type="text" id="f_nome" maxlength="80" autocomplete="name"
+                       placeholder="Ex.: Maria Alves" required />
+                <span class="legenda oculto" id="previa-cracha">
+                  No crachá vai sair: <strong style="color: var(--pulse-300)" id="previa-nome"></strong>
+                </span>
+                <span class="mensagem-erro oculto" data-erro-de="nome">Informe seu nome e sobrenome.</span>
+              </div>
+
+              <div class="campo">
+                <label for="f_telefone">Telefone com DDD</label>
+                <input type="tel" id="f_telefone" maxlength="16" autocomplete="tel"
+                       inputmode="numeric" placeholder="(00) 00000-0000" required />
+                <span class="mensagem-erro oculto" data-erro-de="telefone">
+                  Informe um telefone com DDD.
+                </span>
               </div>
 
               <div class="campo">
@@ -233,15 +247,42 @@
           if (aviso) mostrar(aviso, erro);
           return !erro;
         }
-        ['f_nome', 'f_empresa'].forEach((id) =>
+        ['f_nome', 'f_telefone', 'f_empresa'].forEach((id) =>
           $(id).addEventListener('input', () => {
             $(id).classList.remove('campo-erro');
             marcarErro(id.slice(2), false);
           })
         );
 
+        /* Telefone: máscara (00) 00000-0000 enquanto digita, só dígitos por baixo */
+        const soDigitos = (v) => String(v || '').replace(/\D/g, '');
+        function formatarTelefone(v) {
+          const d = soDigitos(v).slice(0, 11);
+          if (d.length <= 2) return d;
+          if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+          if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+          return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+        }
+        $('f_telefone').addEventListener('input', (ev) => {
+          const antes = ev.target.value;
+          const formatado = formatarTelefone(antes);
+          if (formatado !== antes) ev.target.value = formatado;
+        });
+
+        /* Prévia do nome: mostra exatamente o que a impressora vai escrever.
+           Usa a mesma função da impressão, então nunca diverge do crachá real. */
+        function atualizarPrevia() {
+          const nome = $('f_nome').value.trim();
+          const curto = nome && window.CrachaCore ? CrachaCore.shortName(nome) : nome;
+          const vale = curto && curto.toLowerCase() !== nome.toLowerCase();
+          if (vale) $('previa-nome').textContent = curto.toUpperCase();
+          mostrar($('previa-cracha'), !!vale);
+        }
+        $('f_nome').addEventListener('input', atualizarPrevia);
+
         const coletar = () => ({
           nome: $('f_nome').value.trim(),
+          telefone: $('f_telefone').value.trim(),
           empresa: $('f_empresa').value.trim(),
           funcao: funcaoEscolhida === 'Outro' ? $('f_funcao_outro').value.trim() : funcaoEscolhida,
           segmento: $('f_segmento').value,
@@ -254,6 +295,12 @@
           const nomeRuim = d.nome.length < 2;
           $('f_nome').classList.toggle('campo-erro', nomeRuim);
           ok = marcarErro('nome', nomeRuim) && ok;
+
+          // 10 dígitos (fixo) ou 11 (celular), sempre com DDD
+          const digitos = soDigitos(d.telefone).length;
+          const telRuim = digitos < 10 || digitos > 11;
+          $('f_telefone').classList.toggle('campo-erro', telRuim);
+          ok = marcarErro('telefone', telRuim) && ok;
 
           const semEmpresa = !d.empresa;
           $('f_empresa').classList.toggle('campo-erro', semEmpresa);
@@ -333,6 +380,7 @@
           funcaoEscolhida = '';
           caixaFuncao.querySelectorAll('.opcao').forEach((o) => o.setAttribute('aria-pressed', 'false'));
           mostrar($('campo-funcao-outro'), false);
+          mostrar($('previa-cracha'), false);
           document.querySelectorAll('.mensagem-erro').forEach((e) => mostrar(e, false));
           document.querySelectorAll('.campo-erro').forEach((e) => e.classList.remove('campo-erro'));
           mostrar($('alerta-erro'), false);
