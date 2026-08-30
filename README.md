@@ -1,8 +1,23 @@
-# Crachás de Evento — Impressão na Zebra ZD220 (ZPL)
+# Crachás de Evento — Inscrição por QR Code + Impressão na Zebra ZD220
 
-Aplicação web simples (um único `index.html`, **sem servidor e sem build**) para
-imprimir **crachás de evento** numa **Zebra ZD220** (203 dpi, ZPL II, USB).
+Sistema web (páginas estáticas, **sem servidor próprio e sem build**) para
+credenciar participantes e imprimir **crachás** numa **Zebra ZD220**
+(203 dpi, ZPL II, USB).
 
+**O fluxo do evento, em 4 passos:**
+
+1. O participante aponta a câmera para o **cartaz com QR Code** na recepção.
+2. Abre o **formulário no celular** (`inscricao.html`): nome, empresa,
+   faturamento, segmento, função e sistema que utiliza.
+3. Ao enviar, o **crachá é impresso sozinho** na recepção (Nome, Empresa e Função)
+   e o celular mostra o botão **Entrar no grupo do WhatsApp**.
+4. Toda a equipe acompanha os cadastros no **painel** (`admin.html`), com
+   cadastro/edição/exclusão e **exportação para planilha**.
+
+> As três páginas convivem: o `index.html` continua sendo o console de impressão
+> manual e em lote (e é o plano B caso a internet caia).
+
+### O que o console `index.html` faz
 - Detecta a impressora automaticamente via **Zebra Browser Print**.
 - 3 modelos de crachá: **texto** (Nome / Empresa / Cargo, em 3 linhas), **com QR
   Code** e **com código de barras** (matrícula).
@@ -113,7 +128,93 @@ testar antes de ter o Browser Print instalado.
 
 ---
 
-## 4. Detalhes técnicos (ZD220, 203 dpi)
+## 4. Inscrição por QR Code (fluxo do evento)
+
+Esta parte usa um banco **Supabase** (plano gratuito) para ligar o celular do
+participante ao computador da recepção. Só isso: nada é instalado em servidor.
+
+### 4.1 Antes do evento (uma vez)
+
+1. **Entrar no painel** — abra `admin.html` e faça login. O e-mail precisa estar
+   na lista de administradores (veja 4.4).
+2. **Configurações** — preencha o **nome do evento**, o **link do grupo do
+   WhatsApp** (`https://chat.whatsapp.com/…`) e a mensagem de confirmação.
+   O formulário do celular passa a usar esses textos na hora.
+3. **Cartaz QR** — aba **Cartaz QR** → **Imprimir cartaz (A4)**. O código aponta
+   para o `inscricao.html` publicado; imprima e deixe na mesa da recepção.
+4. **Teste de verdade** — com a impressora ligada, faça uma inscrição pelo seu
+   celular e confira se o crachá sai sozinho.
+
+### 4.2 No dia do evento (recepção)
+
+1. No PC ligado à ZD220, abra o **Zebra Browser Print** e depois o `admin.html`.
+2. Faça login e vá em **Estação de impressão**.
+3. Confira a pilha verde **"Impressora: conectada"** no topo.
+4. Marque **"Impressão automática ativada"**.
+5. Pronto: cada inscrição imprime sozinha. Deixe a aba aberta e evite que o
+   computador durma.
+
+> **Use uma estação por evento.** Se duas telas ficarem com a impressão
+> automática ligada, o sistema garante que o crachá **não sai duas vezes**
+> (a primeira tela "reserva" o cadastro antes de imprimir), mas os crachás se
+> dividiriam entre as duas impressoras.
+
+**Se a impressora falhar** (papel acabou, cabo solto), a fila **pausa**, o
+participante volta para "pendente" e aparece o botão **Retomar impressão**.
+Resolva o problema e clique em Retomar — nada se perde.
+
+### 4.3 O que sai no crachá
+
+Só **Nome**, **Empresa** e **Função** — grande e legível de longe. O nome é
+encurtado para primeiro nome + primeiro sobrenome (ver a tabela da seção 3).
+Faturamento, segmento e sistema ficam apenas na planilha.
+
+### 4.4 Banco de dados (Supabase)
+
+O projeto usa três tabelas, criadas pelo SQL em
+[`supabase/migrations/`](supabase/migrations/):
+
+| Tabela | Para quê |
+|---|---|
+| `cracha_participantes` | um registro por inscrição, incluindo quando o crachá foi impresso |
+| `cracha_config` | nome do evento, link do WhatsApp, mensagem de confirmação |
+| `cracha_admins` | e-mails que podem abrir o painel |
+
+**Permissões (RLS) já configuradas:**
+- Qualquer visitante pode **se inscrever** — e só isso.
+- **Ler, editar e exportar** exige login com e-mail cadastrado em `cracha_admins`.
+- A chave `anonKey` em `js/supabase-config.js` é **pública por natureza**; quem
+  protege os dados são as permissões acima.
+
+**Dar acesso a outra pessoa da equipe:** painel → **Configurações →
+Administradores → Adicionar**. Depois ela abre o `admin.html`, clica em
+*"Primeiro acesso? Criar conta"* e define a senha dela.
+
+**Trocar de projeto Supabase:** edite `url` e `anonKey` em
+`js/supabase-config.js` e rode o SQL de `supabase/migrations/` no novo projeto.
+
+> ⚠️ **Véspera do evento:** projetos gratuitos do Supabase são **pausados após
+> alguns dias sem uso**. Abra o painel do Supabase e confirme que o projeto está
+> ativo — se estiver pausado, clique em *Restore*.
+
+### 4.5 Mudar as opções dos campos
+
+As listas de **faturamento**, **segmento** e **função** ficam no fim de
+`js/supabase-config.js`, em `CRACHA_OPCOES`. Edite, salve e publique — as duas
+telas passam a usar as novas opções.
+
+### 4.6 Se a internet cair no meio do evento
+
+- O formulário avisa o participante e **mantém os dados preenchidos** para tentar
+  de novo.
+- O painel mostra "Tempo real: reconectando…" e continua recarregando a lista
+  sozinho a cada minuto; ao voltar, imprime os pendentes.
+- **Plano B total:** o `index.html` funciona 100% offline — cadastre na mão e
+  imprima.
+
+---
+
+## 5. Detalhes técnicos (ZD220, 203 dpi)
 
 - 203 dpi = **8 dots/mm** (ex.: 90 mm → 720 dots).
 - Toda etiqueta começa com `^XA` e termina com `^XZ`.
@@ -123,7 +224,7 @@ testar antes de ter o Browser Print instalado.
 
 ---
 
-## 5. Solução de problemas
+## 6. Solução de problemas
 
 **A impressora não aparece (status vermelho)**
 - O **Zebra Browser Print** está aberto/rodando? (ícone na bandeja)
@@ -147,6 +248,27 @@ testar antes de ter o Browser Print instalado.
 **EAN-13 não imprime**
 - EAN-13 exige **12 ou 13 dígitos numéricos**. Para texto/letras, use **Code 128**.
 
+**O crachá não sai sozinho**
+- A aba **Estação de impressão** está aberta e com **"Impressão automática
+  ativada"** marcada?
+- A pilha da impressora no topo está verde? Se não, abra o Browser Print e clique
+  em **Reconectar**.
+- Apareceu o botão **Retomar impressão**? A fila pausou por uma falha — resolva e
+  clique nele.
+- Em último caso, use o botão **Imprimir** na linha da pessoa (aba Participantes).
+
+**O painel diz "Conta sem permissão"**
+- O e-mail usado no login não está em `cracha_admins`. Peça a um administrador
+  para adicioná-lo em **Configurações → Administradores**.
+
+**"Tempo real: reconectando…" não sai**
+- Internet instável ou o projeto Supabase pausado. O painel continua funcionando
+  (recarrega sozinho a cada minuto); confira o projeto no painel do Supabase.
+
+**O QR do cartaz abre uma página em branco**
+- O cartaz precisa ser gerado **a partir do site publicado** (não do arquivo
+  local): abra o `admin.html` pela URL do GitHub Pages antes de imprimir.
+
 **O Google Sheets não carrega**
 - A planilha precisa estar como **"Qualquer pessoa com o link → Leitor"**.
 - Se mesmo assim falhar, use **Arquivo → Compartilhar → Publicar na web → CSV**
@@ -156,7 +278,7 @@ testar antes de ter o Browser Print instalado.
 
 ---
 
-## 6. Publicar no GitHub Pages (abrir em outro PC)
+## 7. Publicar no GitHub Pages (abrir em outro PC)
 
 O projeto é um site estático (sem build), então dá pra publicar no **GitHub
 Pages** e abrir em qualquer PC pela URL. O repositório já está iniciado e
@@ -197,12 +319,20 @@ O Browser Print é por máquina, então **em cada PC** que for imprimir:
 
 ```
 cracha/
-├── index.html                 ← a aplicação (abra este arquivo)
+├── inscricao.html             ← formulário do participante (abre pelo QR)
+├── admin.html                 ← painel: cadastros, planilha, impressão automática
+├── index.html                 ← console de impressão manual / em lote
 ├── README.md                  ← este arquivo
-├── .gitignore
 ├── exemplo-participantes.csv  ← planilha de exemplo (5 pessoas)
+├── js/
+│   ├── cracha-core.js         ← layout do crachá + ZPL (usado pelas duas telas)
+│   └── supabase-config.js     ← endereço do banco + opções dos campos
+├── supabase/migrations/       ← SQL das tabelas e permissões
 └── libs/
     ├── README.md              ← como obter o BrowserPrint SDK
-    ├── BrowserPrint-3.1.250.min.js          (você adiciona)
-    └── BrowserPrint-Zebra-1.1.250.min.js    (você adiciona)
+    ├── BrowserPrint-3.1.250.min.js
+    ├── BrowserPrint-Zebra-1.1.250.min.js
+    ├── supabase-js-2.112.4.min.js   ← cópias locais: o evento não depende de CDN
+    ├── qrcode-generator-1.4.4.js
+    └── xlsx-0.18.5.full.min.js
 ```
