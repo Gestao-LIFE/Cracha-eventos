@@ -43,3 +43,19 @@ para os nomes acima** OU ajuste os dois `<script src="libs/...">` no topo do
   - confirme que o programa **Zebra Browser Print** está rodando (ícone na bandeja);
   - confirme que os arquivos `.js` estão nesta pasta com os nomes certos;
   - clique em **Reconectar**.
+
+---
+
+## Outras bibliotecas nesta pasta
+
+Ficam versionadas aqui (em vez de virem de um CDN) para o evento **não depender
+de internet boa** no momento da impressão:
+
+| Arquivo | Para quê | Origem |
+|---|---|---|
+| `supabase-js-2.112.4.min.js` | conexão com o banco dos cadastros | npm `@supabase/supabase-js@2.112.4` (`dist/umd/supabase.js`) |
+| `qrcode-generator-1.4.4.js` | gera o QR Code do cartaz (SVG) | npm `qrcode-generator@1.4.4` (`qrcode.js`) |
+| `xlsx-0.18.5.full.min.js` | lê e exporta planilhas | npm `xlsx@0.18.5` (`dist/xlsx.full.min.js`) |
+
+Para atualizar alguma delas, baixe a versão nova do npm, substitua o arquivo e
+ajuste a tag `<script>` nas páginas que a usam.

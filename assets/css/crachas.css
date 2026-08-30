@@ -1,0 +1,610 @@
+/*
+  Crachás de Evento · complemento do Design System Gestão na Veia.
+
+  Aqui fica só o que existe apenas neste sistema: o cartaz do QR Code, as
+  linhas-card dos participantes, as abas do painel e as regras de impressão.
+  Tudo com os tokens do sistema, nenhuma cor solta.
+*/
+
+/* ---------------------------------------------------------------------
+   1. Topo do painel
+   --------------------------------------------------------------------- */
+.topo-fixo {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(5, 7, 15, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--divisor);
+}
+
+.topo-fixo__interno {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 13px var(--margem-lateral);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.topo-fixo__acoes {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* O topo leva as duas marcas. Em tela estreita o endosso sai para os
+   controles da recepção não quebrarem em três linhas. */
+.endosso--topo-painel {
+  display: none;
+  padding-left: 14px;
+  border-left: 1px solid var(--divisor);
+}
+
+@media (min-width: 1000px) {
+  .endosso--topo-painel {
+    display: flex;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   2. Abas
+   --------------------------------------------------------------------- */
+.abas {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.aba {
+  flex: none;
+  padding: 10px 20px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--deep-050);
+  color: var(--frost-55);
+  font-family: var(--exp);
+  font-variation-settings: 'wdth' 125;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.aba:hover {
+  border-color: rgba(174, 225, 251, 0.3);
+  color: var(--frost-100);
+}
+
+.aba[aria-selected='true'] {
+  border-color: var(--pulse-500);
+  background: rgba(79, 184, 242, 0.14);
+  color: var(--pulse-200);
+}
+
+/* ---------------------------------------------------------------------
+   3. Participantes · linhas-card, nunca tabela crua
+   --------------------------------------------------------------------- */
+.lista-participantes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linha-participante {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(15, 26, 46, 0.55);
+  backdrop-filter: blur(14px) saturate(118%);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+  border: 1px solid rgba(174, 225, 251, 0.2);
+  border-radius: var(--r-md);
+  padding: 18px 20px;
+  transition: border-color 0.12s ease;
+}
+
+.linha-participante:hover {
+  border-color: rgba(174, 225, 251, 0.32);
+}
+
+/* Quem ainda não tem crachá é o que importa na recepção: barra Pulse 500 */
+.linha-participante--pendente {
+  border-left: 3px solid var(--pulse-500);
+}
+
+@media (min-width: 760px) {
+  .linha-participante {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
+.linha-participante__corpo {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.linha-participante__topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.linha-participante__nome {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--frost-100);
+  min-width: 0;
+}
+
+.linha-participante__empresa {
+  font-size: 15px;
+  color: var(--frost-72);
+  margin-top: 3px;
+}
+
+.linha-participante__dados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--frost-42);
+}
+
+.linha-participante__acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.lista-vazia {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--frost-42);
+}
+
+/* ---------------------------------------------------------------------
+   4. Estação de impressão
+   --------------------------------------------------------------------- */
+.caixa-auto {
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--deep-050);
+  padding: 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.caixa-auto--ligada {
+  border-color: var(--pulse-500);
+  background: rgba(79, 184, 242, 0.1);
+  box-shadow: var(--glow-suave);
+}
+
+/* O crachá é físico: fundo branco de verdade, não uma superfície do tema */
+.previa-cracha {
+  border-radius: var(--r-sm);
+  background: #fff;
+  max-width: 100%;
+  height: auto;
+  box-shadow: var(--sombra);
+}
+
+.registro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.registro__item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--deep-050);
+  border: 1px solid var(--divisor);
+  font-size: 14px;
+  color: var(--frost-55);
+}
+
+.registro__item strong {
+  color: var(--frost-100);
+  font-weight: 600;
+}
+
+.registro__hora {
+  font-size: 12.5px;
+  color: var(--frost-34);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.registro__item--ok {
+  border-left: 3px solid var(--success);
+}
+.registro__item--erro {
+  border-left: 3px solid var(--danger);
+}
+
+/* ---------------------------------------------------------------------
+   5. Cartaz do QR Code
+   É uma peça do sistema, então segue a régua do slide: duas margens
+   (marca 72, conteúdo 115 sobre 1920) e os tamanhos fixos de marca.
+   Em cqw sobre a largura do cartaz: 72/1920 = 3.75cqw, 115/1920 = 6cqw,
+   marca 58 = 3.02cqw, endosso 36 = 1.88cqw, símbolo 44 = 2.29cqw.
+   --------------------------------------------------------------------- */
+.cartaz {
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  aspect-ratio: 210 / 297;
+  background: var(--deep-000);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.cartaz__interno {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 3.75cqw;
+}
+
+/* Topo: marca do evento à esquerda, endosso à direita, mesma linha */
+.cartaz__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3cqw;
+}
+
+.cartaz__topo .marca-gnv {
+  height: 3.02cqw;
+}
+
+.cartaz__topo .marca-gl {
+  height: 1.88cqw;
+}
+
+.cartaz__topo .endosso__rotulo {
+  font-size: 1.45cqw;
+}
+
+.cartaz__topo .endosso {
+  gap: 1.2cqw;
+}
+
+/* Conteúdo na margem de 115 */
+.cartaz__conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 3cqw;
+  padding: 4cqw 2.25cqw 0;
+}
+
+.cartaz__eyebrow {
+  font-family: var(--exp);
+  font-variation-settings: 'wdth' 125;
+  font-weight: 300;
+  font-size: 1.85cqw;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pulse-500);
+}
+
+.cartaz__titulo {
+  font-family: var(--exp);
+  font-variation-settings: 'wdth' 125;
+  font-weight: 300;
+  font-size: 6.6cqw;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--frost-100);
+}
+
+/* A fatia em Black leva o gradiente da logo: o cartaz é peça de capa */
+.cartaz__titulo .destaque {
+  font-weight: 900;
+  background: var(--grad-logo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cartaz__cidade {
+  font-family: var(--sora);
+  font-size: 2.6cqw;
+  font-weight: 600;
+  color: var(--pulse-300);
+}
+
+/* O QR fica sempre em cartão claro: leitura garantida em qualquer câmera */
+.cartaz__qr {
+  background: var(--frost-100);
+  border-radius: var(--r-md);
+  padding: 2.6cqw;
+  width: 58%;
+  flex: none;
+  box-shadow: 0 0 60px rgba(79, 184, 242, 0.35);
+}
+
+/* O cartaz é capa: o halo aparece mais que numa tela densa, e vem pela
+   direita, atrás do QR, nunca atrás do título. */
+.cartaz .halo::before {
+  background: radial-gradient(
+    ellipse 62% 78% at 104% 46%,
+    rgba(79, 184, 242, 0.62) 0%,
+    rgba(17, 120, 220, 0.3) 38%,
+    rgba(10, 70, 148, 0) 72%
+  );
+  filter: blur(46px);
+}
+
+.cartaz__qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cartaz__chamada {
+  font-family: var(--sora);
+  font-size: 2.5cqw;
+  font-weight: 600;
+  color: var(--frost-100);
+  line-height: 1.3;
+}
+
+.cartaz__passos {
+  font-family: var(--sora);
+  font-size: 1.95cqw;
+  color: var(--frost-55);
+  line-height: 1.45;
+}
+
+.cartaz__url {
+  font-family: var(--sora);
+  font-size: 1.6cqw;
+  color: var(--frost-34);
+  word-break: break-all;
+}
+
+/* Rodapé de canal: símbolo · filete · @gestaolife */
+.cartaz__rodape {
+  display: flex;
+  align-items: center;
+  gap: 2.2cqw;
+}
+
+.cartaz__rodape .simbolo-gl {
+  height: 2.29cqw;
+}
+
+.cartaz__rodape .rodape-canal__filete {
+  height: 1px;
+  background: var(--frost-42);
+}
+
+.cartaz__rodape .rodape-canal__arroba {
+  font-size: 1.67cqw;
+}
+
+/* Versão clara: para impressora comum. A paleta inverte e o vidro vira
+   card sólido com borda, como manda o item de material impresso. */
+.cartaz--claro {
+  background: var(--frost-100);
+  border-color: rgba(5, 7, 15, 0.14);
+}
+.cartaz--claro .cartaz__titulo,
+.cartaz--claro .cartaz__chamada {
+  color: var(--deep-000);
+}
+.cartaz--claro .cartaz__titulo .destaque {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: var(--pulse-700);
+}
+.cartaz--claro .cartaz__cidade {
+  color: var(--pulse-700);
+}
+.cartaz--claro .cartaz__eyebrow {
+  color: var(--pulse-700);
+}
+.cartaz--claro .cartaz__passos {
+  color: rgba(5, 7, 15, 0.62);
+}
+.cartaz--claro .cartaz__url {
+  color: rgba(5, 7, 15, 0.42);
+}
+.cartaz--claro .cartaz__qr {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.cartaz--claro .cartaz__rodape .rodape-canal__arroba {
+  color: rgba(5, 7, 15, 0.72);
+}
+.cartaz--claro .cartaz__rodape .rodape-canal__filete {
+  background: rgba(5, 7, 15, 0.3);
+}
+.cartaz--claro .halo,
+.cartaz--claro .triangulo {
+  display: none;
+}
+/* logo e símbolo são brancos: no claro invertem para o Deep */
+.cartaz--claro .marca-gnv,
+.cartaz--claro .marca-gl,
+.cartaz--claro .simbolo-gl {
+  filter: invert(1) brightness(0.24);
+}
+
+/* ---------------------------------------------------------------------
+   6. Impressão do cartaz
+   --------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  body.imprimindo-cartaz {
+    background: #fff;
+  }
+
+  body.imprimindo-cartaz > *:not(#area-impressao) {
+    display: none !important;
+  }
+
+  body.imprimindo-cartaz #area-impressao {
+    display: block !important;
+  }
+
+  body.imprimindo-cartaz .cartaz {
+    max-width: none;
+    width: 100%;
+    height: 100vh;
+    aspect-ratio: auto;
+    border: none;
+    border-radius: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. Ajustes finos
+   --------------------------------------------------------------------- */
+.grade--estacao {
+  display: grid;
+  gap: 16px;
+  align-items: stretch;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .grade--estacao {
+    grid-template-columns: 1.35fr 1fr;
+  }
+}
+
+.barra-ferramentas {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.busca {
+  flex: 1 1 240px;
+}
+
+.busca input {
+  width: 100%;
+  background: var(--deep-050);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 13px 16px;
+  font-size: 16px;
+  color: var(--frost-100);
+  min-height: 48px;
+}
+
+.busca input:focus {
+  border-color: var(--pulse-500);
+  outline: none;
+}
+
+.contagem {
+  font-size: 14px;
+  color: var(--frost-42);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card de número: o número domina, o rótulo explica */
+.cartao-numero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 18px 20px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(174, 225, 251, 0.2);
+  background: rgba(15, 26, 46, 0.55);
+  backdrop-filter: blur(14px) saturate(118%);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+}
+
+.cartao-numero .numero {
+  font-size: clamp(28px, 6vw, 40px);
+}
+
+.linha-admin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--divisor);
+  background: var(--deep-050);
+}
+
+.linha-admin__email {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--frost-72);
+  word-break: break-all;
+}
+
+.caixa-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 1px dashed rgba(174, 225, 251, 0.28);
+  background: var(--deep-000);
+}
+
+.link-publico {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--pulse-300);
+  word-break: break-all;
+}
