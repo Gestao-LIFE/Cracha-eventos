@@ -274,6 +274,13 @@ preenchendo a tela.
 **EAN-13 não imprime**
 - EAN-13 exige **12 ou 13 dígitos numéricos**. Para texto/letras, use **Code 128**.
 
+**No Mac, a impressora não conecta (pílula vermelha)**
+- Está usando **Safari**? Troque para o **Chrome**: o Safari exige o certificado
+  do Browser Print instalado no Chaveiro.
+- No Chrome, abra `https://localhost:9101` e aceite o certificado uma vez.
+- O programa Zebra Browser Print está aberto (ícone na barra superior)?
+- Último recurso: abra o `admin.html` local (`file://`), que dispensa o certificado.
+
 **O crachá não sai sozinho**
 - A aba **Estação de impressão** está aberta e com **"Impressão automática
   ativada"** marcada?
@@ -323,6 +330,39 @@ commitado (branch `main`). Falta enviar para o GitHub:
 3. No GitHub: **Settings → Pages → Branch `main` / `/root` → Save**.
 4. Em ~1 min a URL fica pronta: `https://SEU-USUARIO.github.io/cracha/`. Abra
    essa URL em qualquer PC.
+
+### Estação de impressão no Mac
+
+O Browser Print tem versão para macOS, então a estação pode ser um Mac ligado à
+ZD220 por USB. Duas coisas mudam em relação ao Windows e as duas já derrubaram
+teste de gente experiente:
+
+**1. Use o Chrome, não o Safari.** A página fica em `https://` (GitHub Pages) e
+precisa falar com o Browser Print em `https://localhost:9101`. O Chrome resolve
+isso com um clique; o Safari exige instalar o certificado no Chaveirocom e marcar
+como confiável, e falha calado quando isso não é feito. No Chrome:
+
+1. Instale o **Zebra Browser Print** para Mac e deixe o programa aberto (ícone na
+   barra superior).
+2. Ligue a ZD220 no USB.
+3. Abra `https://localhost:9101` numa aba. Vai aparecer aviso de certificado:
+   clique em **Avançado** e depois em **Prosseguir para localhost**. É uma vez só,
+   por Mac.
+4. Abra `https://crachas.gestaolife.com/admin.html`, entre e vá em **Estação**. A
+   pílula da impressora no topo tem que ficar verde com o nome da ZD220.
+5. Clique em **Testar**. Saiu etiqueta, está pronto.
+
+**2. O Mac não pode dormir.** Em **Ajustes do Sistema → Tela bloqueada**, deixe
+"Desligar a tela quando inativo" em *Nunca* enquanto durar o evento, ou rode
+`caffeinate -d` no Terminal. Deixe a aba do painel **aberta e visível**: em aba
+escondida o macOS segura os temporizadores, e a fila só anda pelo tempo real.
+
+> **Se o certificado der trabalho:** copie a pasta do projeto para o Mac e abra o
+> `admin.html` com dois cliques (`file://`). Aí o Browser Print funciona sem
+> certificado nenhum, e o painel continua conversando com o banco normalmente.
+> Nesse caso **imprima o cartaz pelo site publicado**, não pelo arquivo local: o
+> QR guarda o endereço da página onde foi gerado, e um QR com `file://` não abre
+> em celular nenhum.
 
 ### Para imprimir de verdade em cada PC (Windows)
 O Browser Print é por máquina, então **em cada PC** que for imprimir:
