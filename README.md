@@ -41,7 +41,7 @@ A página **não** fala direto com o USB — ela usa o programa **Zebra Browser 
 como ponte. Faça uma vez:
 
 1. Baixe e instale o **Zebra Browser Print**:
-   https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html
+   https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html
 2. Conecte a **ZD220** no USB e ligue. Instale o driver da ZD220 se o Windows pedir.
 3. Abra o **Zebra Browser Print** (fica rodando na bandeja do sistema).
 4. Copie os arquivos do SDK para a pasta `libs/` — veja [`libs/README.md`](libs/README.md).
@@ -334,25 +334,45 @@ commitado (branch `main`). Falta enviar para o GitHub:
 ### Estação de impressão no Mac
 
 O Browser Print tem versão para macOS, então a estação pode ser um Mac ligado à
-ZD220 por USB. Duas coisas mudam em relação ao Windows e as duas já derrubaram
+ZD220 por USB. Três coisas mudam em relação ao Windows, e as três já derrubaram
 teste de gente experiente:
 
-**1. Use o Chrome, não o Safari.** A página fica em `https://` (GitHub Pages) e
+**1. A impressora entra no Mac antes do Browser Print.** Esta é a diferença
+principal em relação ao Windows, e é onde a montagem costuma travar: no Mac, o
+Browser Print **só enxerga a ZD220 depois que ela já está adicionada ao sistema**.
+Na ordem:
+
+1. Ligue a ZD220 no USB e ligue a impressora. **Atenção ao cabo:** a ZD220 usa
+   USB-B e o MacBook Air só tem USB-C, então é preciso um cabo USB-C para USB-B
+   ou um adaptador. Se o Mac não reconhecer, troque o cabo ou a porta antes de
+   suspeitar do software.
+2. **Ajustes do Sistema → Impressoras e Scanners → Adicionar**. O macOS já traz
+   o driver CUPS da Zebra embutido, então normalmente a ZD220 aparece sozinha.
+   Se não aparecer, instale o driver macOS da Zebra e repita.
+3. Só então instale o **Zebra Browser Print**
+   (<https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html>,
+   a Zebra pede um cadastro rápido) e deixe o programa aberto, com o ícone na
+   barra superior. Passo a passo oficial em
+   <https://support.zebra.com/article/Installing-Zebra-Browser-Print-for-Mac>.
+4. Clique no ícone do Browser Print na barra e confirme que a ZD220 aparece na
+   lista de dispositivos. Se pedir permissão, escolha **Sempre permitir**.
+
+**2. Use o Chrome, não o Safari.** A página fica em `https://` (GitHub Pages) e
 precisa falar com o Browser Print em `https://localhost:9101`. O Chrome resolve
-isso com um clique; o Safari exige instalar o certificado no Chaveirocom e marcar
+isso com um clique; o Safari exige instalar o certificado no Chaveiro e marcar
 como confiável, e falha calado quando isso não é feito. No Chrome:
 
-1. Instale o **Zebra Browser Print** para Mac e deixe o programa aberto (ícone na
-   barra superior).
-2. Ligue a ZD220 no USB.
-3. Abra `https://localhost:9101` numa aba. Vai aparecer aviso de certificado:
+1. Abra `https://localhost:9101` numa aba. Vai aparecer aviso de certificado:
    clique em **Avançado** e depois em **Prosseguir para localhost**. É uma vez só,
    por Mac.
-4. Abra `https://crachas.gestaolife.com/admin.html`, entre e vá em **Estação**. A
-   pílula da impressora no topo tem que ficar verde com o nome da ZD220.
-5. Clique em **Testar**. Saiu etiqueta, está pronto.
+2. Abra o painel, entre e vá em **Estação**. A pílula da impressora no topo tem
+   que ficar verde com o nome da ZD220.
+3. Clique em **Testar**. Saiu etiqueta, está pronto.
 
-**2. O Mac não pode dormir.** Em **Ajustes do Sistema → Tela bloqueada**, deixe
+> Os dois links (download e guia de instalação) também ficam na aba **Estação**
+> do painel, no aviso que aparece quando o Browser Print não é encontrado.
+
+**3. O Mac não pode dormir.** Em **Ajustes do Sistema → Tela bloqueada**, deixe
 "Desligar a tela quando inativo" em *Nunca* enquanto durar o evento, ou rode
 `caffeinate -d` no Terminal. Deixe a aba do painel **aberta e visível**: em aba
 escondida o macOS segura os temporizadores, e a fila só anda pelo tempo real.
